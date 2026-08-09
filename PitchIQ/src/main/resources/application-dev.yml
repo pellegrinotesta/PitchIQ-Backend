@@ -1,0 +1,36 @@
+spring:
+  datasource:
+    hikari:
+      maximum-pool-size: 5
+
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+  flyway:
+    # In dev carichiamo anche i seed dati di esempio
+    locations: classpath:db/migration,classpath:db/testdata
+
+server:
+  error:
+    include-message: always
+    include-binding-errors: always
+
+app:
+  cors:
+    # In dev accettiamo anche le porte dei microfrontend in dev isolato
+    allowed-origins: >
+      http://localhost:4200,
+      http://localhost:4201,
+      http://localhost:4202,
+      http://localhost:4203,
+      http://localhost:4204
+
+logging:
+  level:
+    it.pitchiq: DEBUG
+    org.springframework.security: DEBUG
+    org.springframework.web: DEBUG
+    org.flywaydb: DEBUG
