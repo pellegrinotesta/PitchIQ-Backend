@@ -8,4 +8,4 @@ CREATE TABLE utenti
 
 -- Password: "admin123" hashata con BCrypt strength 12. Cambiare in produzione.
 INSERT INTO utenti (username, password_hash, ruolo)
-VALUES ('admin', '$2a$12$7QJ8n3Fz1mKpLgWxR2hOBuDvE9sNcXtYaI5oP0kMjHqSeVbZwA1UC', 'ADMIN');
+VALUES ('admin', '$2a$10$EGcbnw2xbw39nlYCWyQuc.0Q9GwZxraLr7n8dNmimZNqPACGaiky.', 'ADMIN');
