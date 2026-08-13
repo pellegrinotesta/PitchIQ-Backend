@@ -6,7 +6,9 @@ import lombok.Setter;
 import lombok.NoArgsConstructor;
 
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 @Entity
 @Table(name = "schemi_formazione")
@@ -27,8 +29,8 @@ public class SchemaFormazione {
     private String descrizione;
 
     @OneToMany(mappedBy = "schema", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<SlotSchema> slot = new ArrayList<>();
+    private Set<SlotSchema> slot = new LinkedHashSet<>();
 
     @OneToMany(mappedBy = "schema", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<FrecciaSchema> frecce = new ArrayList<>();
+    private Set<FrecciaSchema> frecce = new LinkedHashSet<>();
 }

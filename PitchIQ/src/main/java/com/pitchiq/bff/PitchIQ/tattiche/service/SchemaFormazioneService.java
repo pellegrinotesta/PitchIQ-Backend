@@ -104,7 +104,10 @@ public class SchemaFormazioneService {
     // --- Privato ---
 
     private SchemaFormazione getOrThrow(Long id) {
-        return schemaRepository.findByIdWithDetails(id)
+        // Prima carica slot, poi frecce — Hibernate le unisce nell'entity cached
+        schemaRepository.findByIdWithSlot(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Schema non trovato: " + id));
+        return schemaRepository.findByIdWithFrecce(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Schema non trovato: " + id));
     }
 

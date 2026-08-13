@@ -12,6 +12,11 @@ public interface SchemaFormazioneRepository extends JpaRepository<SchemaFormazio
     @Query("SELECT s FROM SchemaFormazione s ORDER BY s.nome")
     List<SchemaFormazione> findAllOrdered();
 
-    @Query("SELECT s FROM SchemaFormazione s LEFT JOIN FETCH s.slot LEFT JOIN FETCH s.frecce WHERE s.id = :id")
-    Optional<SchemaFormazione> findByIdWithDetails(Long id);
+    // Prima query: fetch slot
+    @Query("SELECT s FROM SchemaFormazione s LEFT JOIN FETCH s.slot WHERE s.id = :id")
+    Optional<SchemaFormazione> findByIdWithSlot(Long id);
+
+    // Seconda query: fetch frecce
+    @Query("SELECT s FROM SchemaFormazione s LEFT JOIN FETCH s.frecce WHERE s.id = :id")
+    Optional<SchemaFormazione> findByIdWithFrecce(Long id);
 }
