@@ -1,9 +1,11 @@
 package com.pitchiq.bff.PitchIQ.statistiche.controller;
 
+import com.pitchiq.bff.PitchIQ.statistiche.dto.ConfrontoDto;
 import com.pitchiq.bff.PitchIQ.statistiche.dto.StatisticaDto;
 import com.pitchiq.bff.PitchIQ.statistiche.dto.StatisticaRequest;
 import com.pitchiq.bff.PitchIQ.statistiche.dto.TrendDto;
 import com.pitchiq.bff.PitchIQ.statistiche.model.CategoriaMetrica;
+import com.pitchiq.bff.PitchIQ.statistiche.service.ConfrontoService;
 import com.pitchiq.bff.PitchIQ.statistiche.service.StatisticaService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,7 @@ import java.util.List;
 public class StatisticaController {
 
     private final StatisticaService service;
+    private final ConfrontoService confrontoService;
 
     // Inserisci/aggiorna un valore
     @PostMapping
@@ -46,5 +49,12 @@ public class StatisticaController {
     @GetMapping("/rosa/panoramica")
     public List<TrendDto> getPanoramicaRosa() {
         return service.getPanoramicaRosa();
+    }
+
+    @GetMapping("/confronto")
+    public ConfrontoDto confronta(
+            @RequestParam Long id1,
+            @RequestParam Long id2) {
+        return confrontoService.confronta(id1, id2);
     }
 }
