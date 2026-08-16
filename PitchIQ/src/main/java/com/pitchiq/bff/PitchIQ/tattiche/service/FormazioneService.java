@@ -83,7 +83,10 @@ public class FormazioneService {
         f.setModulo(req.modulo());
         f.setData(req.data());
         f.setNote(req.note());
+
+        // Svuota e forza subito il delete prima degli insert
         f.getPosizioni().clear();
+        formazioneRepository.saveAndFlush(f); // flush immediato del clear
 
         if (req.posizioni() != null) {
             req.posizioni().forEach(p -> {

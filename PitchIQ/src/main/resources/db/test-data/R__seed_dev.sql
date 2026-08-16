@@ -40,52 +40,179 @@ INSERT INTO formazioni (nome, modulo, data, note) VALUES
 ('Formazione tipo B', '4-4-2',   '2026-08-05', 'Alternativa difensiva'),
 ('Formazione tipo C', '3-5-2',   '2026-08-10', 'Modulo aggressivo con ali offensive');
 
--- Posizioni formazione 4-3-3 (id=1)
--- I giocatore_id corrispondono all'ordine di inserimento sopra (1=Donnarumma, 3=Bastoni, ecc.)
-INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare) VALUES
--- Portiere
-(1, 1,  50.0, 90.0, 'GK',  1),
--- Difensori
-(1, 3,  30.0, 72.0, 'CB1', 1),
-(1, 5,  50.0, 75.0, 'CB2', 1),
-(1, 4,  70.0, 72.0, 'RB',  1),
-(1, 7,  15.0, 68.0, 'LB',  1),
--- Centrocampisti
-(1, 8,  30.0, 50.0, 'CM1', 1),
-(1, 9,  50.0, 45.0, 'CM2', 1),
-(1, 10, 70.0, 50.0, 'CM3', 1),
--- Attaccanti
-(1, 13, 20.0, 22.0, 'LW',  1),
-(1, 12, 50.0, 15.0, 'ST',  1),
-(1, 14, 80.0, 22.0, 'RW',  1);
+-- =============================================
+-- POSIZIONI CAMPO - 4-3-3 (Formazione tipo A)
+-- =============================================
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 50.0, 90.0, 'GK', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo A' AND g.cognome = 'Donnarumma'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
 
--- Posizioni formazione 4-4-2 (id=2)
-INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare) VALUES
-(2, 1,  50.0, 90.0, 'GK',  1),
-(2, 3,  25.0, 72.0, 'CB1', 1),
-(2, 5,  45.0, 75.0, 'CB2', 1),
-(2, 4,  65.0, 72.0, 'RB',  1),
-(2, 11, 15.0, 68.0, 'LB',  1),
-(2, 8,  20.0, 48.0, 'LM',  1),
-(2, 9,  38.0, 52.0, 'CM1', 1),
-(2, 10, 62.0, 52.0, 'CM2', 1),
-(2, 16, 80.0, 48.0, 'RM',  1),
-(2, 12, 38.0, 18.0, 'ST1', 1),
-(2, 15, 62.0, 18.0, 'ST2', 1);
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 30.0, 72.0, 'CB1', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo A' AND g.cognome = 'Bastoni'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
 
--- Posizioni formazione 3-5-2 (id=3)
-INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare) VALUES
-(3, 1,  50.0, 90.0, 'GK',  1),
-(3, 3,  25.0, 72.0, 'CB1', 1),
-(3, 5,  50.0, 75.0, 'CB2', 1),
-(3, 4,  75.0, 72.0, 'CB3', 1),
-(3, 11, 12.0, 52.0, 'LWB', 1),
-(3, 8,  30.0, 48.0, 'CM1', 1),
-(3, 9,  50.0, 43.0, 'CM2', 1),
-(3, 10, 70.0, 48.0, 'CM3', 1),
-(3, 16, 88.0, 52.0, 'RWB', 1),
-(3, 12, 38.0, 18.0, 'ST1', 1),
-(3, 14, 62.0, 18.0, 'ST2', 1);
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 50.0, 75.0, 'CB2', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo A' AND g.cognome = 'Gatti'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 70.0, 72.0, 'RB', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo A' AND g.cognome = 'Di Lorenzo'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 15.0, 68.0, 'LB', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo A' AND g.cognome = 'Calabria'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 30.0, 50.0, 'CM1', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo A' AND g.cognome = 'Barella'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 50.0, 45.0, 'CM2', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo A' AND g.cognome = 'Tonali'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 70.0, 50.0, 'CM3', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo A' AND g.cognome = 'Pessina'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 20.0, 22.0, 'LW', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo A' AND g.cognome = 'Chiesa'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 50.0, 15.0, 'ST', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo A' AND g.cognome = 'Martinez'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 80.0, 22.0, 'RW', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo A' AND g.cognome = 'Raspadori'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+-- =============================================
+-- POSIZIONI CAMPO - 4-4-2 (Formazione tipo B)
+-- =============================================
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 50.0, 90.0, 'GK', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo B' AND g.cognome = 'Donnarumma'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 25.0, 72.0, 'CB1', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo B' AND g.cognome = 'Bastoni'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 45.0, 75.0, 'CB2', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo B' AND g.cognome = 'Gatti'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 65.0, 72.0, 'RB', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo B' AND g.cognome = 'Di Lorenzo'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 15.0, 68.0, 'LB', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo B' AND g.cognome = 'Calabria'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 20.0, 48.0, 'LM', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo B' AND g.cognome = 'Barella'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 38.0, 52.0, 'CM1', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo B' AND g.cognome = 'Tonali'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 62.0, 52.0, 'CM2', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo B' AND g.cognome = 'Pessina'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 80.0, 48.0, 'RM', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo B' AND g.cognome = 'Locatelli'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 38.0, 18.0, 'ST1', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo B' AND g.cognome = 'Martinez'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 62.0, 18.0, 'ST2', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo B' AND g.cognome = 'Kean'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+-- =============================================
+-- POSIZIONI CAMPO - 3-5-2 (Formazione tipo C)
+-- =============================================
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 50.0, 90.0, 'GK', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo C' AND g.cognome = 'Donnarumma'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 25.0, 72.0, 'CB1', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo C' AND g.cognome = 'Bastoni'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 50.0, 75.0, 'CB2', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo C' AND g.cognome = 'Gatti'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 75.0, 72.0, 'CB3', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo C' AND g.cognome = 'Di Lorenzo'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 12.0, 52.0, 'LWB', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo C' AND g.cognome = 'Politano'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 30.0, 48.0, 'CM1', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo C' AND g.cognome = 'Barella'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 50.0, 43.0, 'CM2', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo C' AND g.cognome = 'Tonali'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 70.0, 48.0, 'CM3', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo C' AND g.cognome = 'Locatelli'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 88.0, 52.0, 'RWB', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo C' AND g.cognome = 'Pellegrini'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 38.0, 18.0, 'ST1', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo C' AND g.cognome = 'Martinez'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
+
+INSERT INTO posizioni_campo (formazione_id, giocatore_id, coord_x, coord_y, slot_ruolo, titolare)
+SELECT f.id, g.id, 62.0, 18.0, 'ST2', 1
+FROM formazioni f, giocatori g WHERE f.nome = 'Formazione tipo C' AND g.cognome = 'Chiesa'
+ON DUPLICATE KEY UPDATE coord_x = VALUES(coord_x), coord_y = VALUES(coord_y);
 
 -- =============================================
 -- SCHEMI

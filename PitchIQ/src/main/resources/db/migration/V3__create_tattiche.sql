@@ -17,7 +17,8 @@ CREATE TABLE posizioni_campo
     slot_ruolo     VARCHAR(20),
     titolare       TINYINT(1)     NOT NULL DEFAULT 1,
     CONSTRAINT fk_posizione_formazione FOREIGN KEY (formazione_id) REFERENCES formazioni (id) ON DELETE CASCADE,
-    CONSTRAINT fk_posizione_giocatore  FOREIGN KEY (giocatore_id)  REFERENCES giocatori (id)  ON DELETE CASCADE
+    CONSTRAINT fk_posizione_giocatore  FOREIGN KEY (giocatore_id)  REFERENCES giocatori (id)  ON DELETE CASCADE,
+    CONSTRAINT uq_formazione_giocatore UNIQUE (formazione_id, giocatore_id)
 );
 
 CREATE INDEX idx_posizioni_formazione ON posizioni_campo (formazione_id);
