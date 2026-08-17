@@ -12,11 +12,21 @@ public record GiocatoreDto(
         String nome,
         String cognome,
         LocalDate dataNascita,
+        Integer eta,
         RuoloGiocatore ruolo,
+        String ruoliSecondari,
         Integer numeroMaglia,
         String piedePreferito,
         LocalDate contrattoInizio,
         LocalDate contrattoFine,
-        StatoGiocatore stato
-) {
-}
+        StatoGiocatore stato,
+        String nazionalita,
+        String luogoNascita,
+        Integer altezzaCm,
+        Integer pesoKg,
+        java.math.BigDecimal stipendioAnnuo,
+        java.math.BigDecimal valoreMercato,
+        java.math.BigDecimal clausola,
+        String noteMediche,
+        String agente
+) {}

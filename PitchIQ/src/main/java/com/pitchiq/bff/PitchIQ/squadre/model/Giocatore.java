@@ -47,4 +47,35 @@ public class Giocatore {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private StatoGiocatore stato = StatoGiocatore.ATTIVO;
+
+    @Column(length = 50)
+    private String nazionalita;
+
+    @Column(name = "luogo_nascita", length = 100)
+    private String luogoNascita;
+
+    @Column(name = "altezza_cm")
+    private Integer altezzaCm;
+
+    @Column(name = "peso_kg")
+    private Integer pesoKg;
+
+    // Ruoli secondari separati da virgola es. "DIFENSORE,CENTROCAMPISTA"
+    @Column(name = "ruoli_secondari", length = 100)
+    private String ruoliSecondari;
+
+    @Column(name = "stipendio_annuo", precision = 12, scale = 2)
+    private java.math.BigDecimal stipendioAnnuo;
+
+    @Column(name = "valore_mercato", precision = 12, scale = 2)
+    private java.math.BigDecimal valoreMercato;
+
+    @Column(precision = 12, scale = 2)
+    private java.math.BigDecimal clausola;
+
+    @Column(name = "note_mediche", length = 500)
+    private String noteMediche;
+
+    @Column(length = 100)
+    private String agente;
 }

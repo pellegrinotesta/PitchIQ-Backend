@@ -1,0 +1,4 @@
+ALTER TABLE eventi_partita
+ADD COLUMN coord_x DECIMAL(5,2) NULL,
+ADD COLUMN coord_y DECIMAL(5,2) NULL,
+ADD COLUMN xg      DECIMAL(4,2) NULL;

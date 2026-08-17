@@ -3,6 +3,8 @@ package com.pitchiq.bff.PitchIQ.partite.dto;
 import com.pitchiq.bff.PitchIQ.partite.model.TipoEvento;
 import lombok.Builder;
 
+import java.math.BigDecimal;
+
 @Builder
 public record EventoDto(
         Long id,
@@ -11,5 +13,8 @@ public record EventoDto(
         Long giocatoreId,
         String nomeGiocatore,
         String cognomeGiocatore,
-        String nota
+        String nota,
+        BigDecimal coordX,
+        BigDecimal coordY,
+        BigDecimal xg
 ) {}

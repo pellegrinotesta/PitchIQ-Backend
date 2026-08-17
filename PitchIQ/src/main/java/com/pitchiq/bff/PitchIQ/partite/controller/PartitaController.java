@@ -2,6 +2,7 @@ package com.pitchiq.bff.PitchIQ.partite.controller;
 
 import com.pitchiq.bff.PitchIQ.partite.dto.*;
 import com.pitchiq.bff.PitchIQ.partite.service.PartitaService;
+import com.pitchiq.bff.PitchIQ.partite.service.XgCalcolatoreService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -9,12 +10,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequiredArgsConstructor
 public class PartitaController {
 
     private final PartitaService service;
+    private final XgCalcolatoreService xgCalcolatoreService;
 
     // ===== PARTITE =====
     @GetMapping("/api/partite")
@@ -48,6 +51,14 @@ public class PartitaController {
     @DeleteMapping("/api/partite/{id}/eventi/{eventoId}")
     public PartitaDto removeEvento(@PathVariable Long id, @PathVariable Long eventoId) {
         return service.removeEvento(id, eventoId);
+    }
+
+    // GET /api/partite/xg-preview?x=55&y=25
+    @GetMapping("/api/partite/xg-preview")
+    public Map<String, Double> xgPreview(
+            @RequestParam double x,
+            @RequestParam double y) {
+        return Map.of("xg", xgCalcolatoreService.calcolaXgTiro(x, y));
     }
 
     // ===== STATISTICHE =====

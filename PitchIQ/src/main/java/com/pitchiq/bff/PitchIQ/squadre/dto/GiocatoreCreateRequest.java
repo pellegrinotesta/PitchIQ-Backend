@@ -7,28 +7,23 @@ import jakarta.validation.constraints.*;
 import java.time.LocalDate;
 
 public record GiocatoreCreateRequest(
-
-        @NotBlank(message = "Il nome è obbligatorio")
-        @Size(max = 100)
-        String nome,
-
-        @NotBlank(message = "Il cognome è obbligatorio")
-        @Size(max = 100)
-        String cognome,
-
+        @NotBlank String nome,
+        @NotBlank String cognome,
         LocalDate dataNascita,
-
-        @NotNull(message = "Il ruolo è obbligatorio")
-        RuoloGiocatore ruolo,
-
-        @Min(1) @Max(99)
-        Integer numeroMaglia,
-
+        @NotNull RuoloGiocatore ruolo,
+        String ruoliSecondari,
+        @Min(1) @Max(99) Integer numeroMaglia,
         String piedePreferito,
-
         LocalDate contrattoInizio,
-
         LocalDate contrattoFine,
-
-        StatoGiocatore stato
+        StatoGiocatore stato,
+        String nazionalita,
+        String luogoNascita,
+        Integer altezzaCm,
+        Integer pesoKg,
+        java.math.BigDecimal stipendioAnnuo,
+        java.math.BigDecimal valoreMercato,
+        java.math.BigDecimal clausola,
+        String noteMediche,
+        String agente
 ) {}

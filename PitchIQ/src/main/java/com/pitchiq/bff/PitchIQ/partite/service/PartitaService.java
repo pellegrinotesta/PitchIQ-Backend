@@ -26,6 +26,7 @@ public class PartitaService {
     private final HeatmapRepository heatmapRepository;
     private final ScoutingRepository scoutingRepository;
     private final GiocatoreRepository giocatoreRepository;
+    private final XgCalcolatoreService xgCalcolatoreService;
 
     // ===== PARTITE =====
 
@@ -91,9 +92,44 @@ public class PartitaService {
         e.setTipo(req.tipo());
         e.setGiocatoreId(req.giocatoreId());
         e.setNota(req.nota());
+        e.setCoordX(req.coordX());
+        e.setCoordY(req.coordY());
+
+        // Calcola xG automaticamente per tiri e gol con posizione
+        if ((req.tipo() == TipoEvento.TIRO || req.tipo() == TipoEvento.GOL)
+                && req.coordX() != null && req.coordY() != null) {
+            double xg = xgCalcolatoreService.calcolaXgTiro(
+                    req.coordX().doubleValue(),
+                    req.coordY().doubleValue()
+            );
+            e.setXg(BigDecimal.valueOf(xg));
+        }
+
         p.getEventi().add(e);
         partitaRepository.save(p);
+
+        // Ricalcola xG totale della partita sommando tutti i tiri
+        aggiornaXgTotale(p);
+
         return findById(partitaId);
+    }
+
+    private void aggiornaXgTotale(Partita p) {
+        List<Double> xgTiri = p.getEventi().stream()
+                .filter(e -> e.getXg() != null)
+                .map(e -> e.getXg().doubleValue())
+                .toList();
+
+        if (!xgTiri.isEmpty()) {
+            StatistichePartita stats = p.getStatistiche();
+            if (stats == null) {
+                stats = new StatistichePartita();
+                stats.setPartita(p);
+                p.setStatistiche(stats);
+            }
+            stats.setXg(xgCalcolatoreService.sommaXg(xgTiri));
+            partitaRepository.save(p);
+        }
     }
 
     @Transactional

@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "eventi_partita")
 @Getter @Setter @NoArgsConstructor
@@ -30,6 +32,15 @@ public class EventoPartita {
 
     @Column(length = 200)
     private String nota;
+
+    @Column(name = "coord_x", precision = 5, scale = 2)
+    private BigDecimal coordX;
+
+    @Column(name = "coord_y", precision = 5, scale = 2)
+    private BigDecimal coordY;
+
+    @Column(precision = 4, scale = 2)
+    private BigDecimal xg;
 }
 
 
