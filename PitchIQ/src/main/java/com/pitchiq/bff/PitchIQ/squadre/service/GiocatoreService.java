@@ -4,6 +4,7 @@ import com.pitchiq.bff.PitchIQ.common.exception.ResourceNotFoundException;
 import com.pitchiq.bff.PitchIQ.squadre.dto.GiocatoreCreateRequest;
 import com.pitchiq.bff.PitchIQ.squadre.dto.GiocatoreDto;
 import com.pitchiq.bff.PitchIQ.squadre.model.Giocatore;
+import com.pitchiq.bff.PitchIQ.squadre.model.RuoloCategoria;
 import com.pitchiq.bff.PitchIQ.squadre.model.RuoloGiocatore;
 import com.pitchiq.bff.PitchIQ.squadre.model.StatoGiocatore;
 import com.pitchiq.bff.PitchIQ.squadre.repository.GiocatoreRepository;
@@ -88,6 +89,7 @@ public class GiocatoreService {
                 .dataNascita(g.getDataNascita())
                 .eta(eta)
                 .ruolo(g.getRuolo())
+                .categoriaRuolo(RuoloCategoria.of(g.getRuolo()).name())
                 .ruoliSecondari(g.getRuoliSecondari())
                 .numeroMaglia(g.getNumeroMaglia())
                 .piedePreferito(g.getPiedePreferito())

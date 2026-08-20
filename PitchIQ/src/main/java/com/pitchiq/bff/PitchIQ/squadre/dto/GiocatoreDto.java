@@ -14,6 +14,7 @@ public record GiocatoreDto(
         LocalDate dataNascita,
         Integer eta,
         RuoloGiocatore ruolo,
+        String categoriaRuolo,
         String ruoliSecondari,
         Integer numeroMaglia,
         String piedePreferito,

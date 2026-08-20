@@ -372,3 +372,17 @@ INSERT INTO statistiche_periodiche (giocatore_id, periodo, categoria, valore) VA
 (12, '2025-11', 'MINUTI_GIOCATI', 300), (12, '2025-12', 'MINUTI_GIOCATI', 340),
 (12, '2026-01', 'MINUTI_GIOCATI', 355), (12, '2026-02', 'MINUTI_GIOCATI', 330),
 (12, '2026-03', 'MINUTI_GIOCATI', 350), (12, '2026-04', 'MINUTI_GIOCATI', 360);
+
+-- Aggiorna ruoli con valori specifici
+UPDATE giocatori SET ruolo = 'POR' WHERE cognome IN ('Donnarumma', 'Serafini');
+UPDATE giocatori SET ruolo = 'DC'  WHERE cognome IN ('Bastoni', 'Gatti');
+UPDATE giocatori SET ruolo = 'TSD' WHERE cognome IN ('Di Lorenzo');
+UPDATE giocatori SET ruolo = 'TSS' WHERE cognome IN ('Calabria');
+UPDATE giocatori SET ruolo = 'CDC' WHERE cognome IN ('Tonali', 'Locatelli');
+UPDATE giocatori SET ruolo = 'CC'  WHERE cognome IN ('Barella', 'Pessina');
+UPDATE giocatori SET ruolo = 'MOC' WHERE cognome IN ('Pellegrini');
+UPDATE giocatori SET ruolo = 'ALD' WHERE cognome IN ('Politano');
+UPDATE giocatori SET ruolo = 'ALS' WHERE cognome IN ('Chiesa');
+UPDATE giocatori SET ruolo = 'PC'  WHERE cognome IN ('Martinez', 'Kean');
+UPDATE giocatori SET ruolo = 'SP'  WHERE cognome IN ('Raspadori');
+UPDATE giocatori SET ruolo = 'FW'  WHERE cognome IN ('Politano');
