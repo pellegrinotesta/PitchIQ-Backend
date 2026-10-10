@@ -1,0 +1,21 @@
+# Da aggiungere al tuo application.yml (o importare con spring.config.import)
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 200MB      # il tracking SkillCorner pesa ~90 MB a partita
+      max-request-size: 260MB
+
+server:
+  tomcat:
+    max-swallow-size: -1        # evita il reset della connessione su upload grandi rifiutati
+
+pitchiq:
+  tracking:
+    upload-dir: ${TRACKING_UPLOAD_DIR:./tracking-data}
+    analytics-url: ${ANALYTICS_URL:http://localhost:8000}
+    timeout-import: 15m
+
+# Solo se non hai già un @RestControllerAdvice: fa arrivare all'app i messaggi
+# delle ResponseStatusException (es. "Il file degli eventi deve essere .csv").
+#  server.error.include-message: always
