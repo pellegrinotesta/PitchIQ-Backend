@@ -20,7 +20,7 @@ public class EventoPartita {
     @JoinColumn(name = "partita_id", nullable = false)
     private Partita partita;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")
     private Integer minuto;
 
     @Enumerated(EnumType.STRING)

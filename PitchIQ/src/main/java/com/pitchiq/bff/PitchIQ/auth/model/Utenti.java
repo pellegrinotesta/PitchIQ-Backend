@@ -22,7 +22,6 @@ public class Utenti {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
-    // ALLENATORE | DIRIGENTE | ADMIN
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, columnDefinition = "ENUM('ALLENATORE','DIRIGENTE','ADMIN')")
     private String ruolo;
 }

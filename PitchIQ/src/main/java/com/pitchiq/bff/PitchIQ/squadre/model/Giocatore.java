@@ -31,7 +31,7 @@ public class Giocatore {
     @Column(nullable = false, length = 20)
     private RuoloGiocatore ruolo;
 
-    @Column(name = "numero_maglia")
+    @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")
     private Integer numeroMaglia;
 
     // "DESTRO" | "SINISTRO" | "AMBIDESTRO"
@@ -54,10 +54,10 @@ public class Giocatore {
     @Column(name = "luogo_nascita", length = 100)
     private String luogoNascita;
 
-    @Column(name = "altezza_cm")
+    @Column(name = "altezza_cm", columnDefinition = "SMALLINT UNSIGNED")
     private Integer altezzaCm;
 
-    @Column(name = "peso_kg")
+    @Column(name = "peso_kg", columnDefinition = "SMALLINT UNSIGNED")
     private Integer pesoKg;
 
     // Ruoli secondari separati da virgola es. "DIFENSORE,CENTROCAMPISTA"

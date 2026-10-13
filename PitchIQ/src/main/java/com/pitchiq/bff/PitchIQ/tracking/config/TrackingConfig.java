@@ -20,4 +20,11 @@ public class TrackingConfig {
                 .requestFactory(factory)
                 .build();
     }
+
+    @Bean
+    public RestClient restClient() {
+        return RestClient.builder()
+                .defaultHeader("User-Agent", "PitchIQ/1.0")
+                .build();
+    }
 }

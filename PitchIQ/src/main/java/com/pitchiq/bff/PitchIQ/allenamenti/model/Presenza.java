@@ -28,6 +28,6 @@ public class Presenza {
     private String motivoAssenza;
 
     // Valutazione 1-10, null se assente
-    @Column
+    @Column(nullable = false, columnDefinition = "TINYINT")
     private Integer valutazione;
 }

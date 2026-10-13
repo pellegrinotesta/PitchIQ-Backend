@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import json
+import math
 import os
 from datetime import datetime, timezone
 
@@ -29,13 +30,24 @@ def _dump(v) -> str:
     return json.dumps(v, separators=(",", ":"), ensure_ascii=False)
 
 
+def _sanitizza(v):
+    """Converte NaN e Inf in None per MySQL."""
+    if isinstance(v, float) and (math.isnan(v) or math.isinf(v)):
+        return None
+    return v
+
+
+def _sanitizza_sequenza(s: dict) -> dict:
+    return {k: _sanitizza(v) for k, v in s.items()}
+
+
 def set_status(engine: Engine, import_id: int, stato: str, messaggio: str | None = None,
                match_id: int | None = None) -> None:
     with engine.begin() as cn:
         cn.execute(text("""UPDATE tracking_import
                            SET stato = :stato, messaggio = :msg,
                                match_id = COALESCE(:mid, match_id)
-                           WHERE id = :id"""),  # aggiornato_il: ON UPDATE CURRENT_TIMESTAMP
+                           WHERE id = :id"""),
                    dict(stato=stato, msg=(messaggio or None) and messaggio[:500], mid=match_id,
                         id=import_id))
 
@@ -45,7 +57,7 @@ def save_result(engine: Engine, import_id: int, r: MatchResult) -> None:
     p = r.partita
     with engine.begin() as cn:
         mid = p["match_id"]
-        # ricaricare la stessa partita la sostituisce
+
         cn.execute(text("""DELETE FROM tracking_frame WHERE sequenza_id IN
                            (SELECT id FROM tracking_sequenza WHERE match_id = :m)"""), dict(m=mid))
         cn.execute(text("DELETE FROM tracking_sequenza WHERE match_id = :m"), dict(m=mid))
@@ -68,7 +80,8 @@ def save_result(engine: Engine, import_id: int, r: MatchResult) -> None:
                         :squadra, :portatore_id, :portatore, :terzo, :n_pressori, :n_opzioni,
                         :valore_portatore, :valore_medio, :valore_migliore, :esito_possesso,
                         :porta_al_tiro, :ha_frame)"""),
-                [dict(s, match_id=mid, ha_frame=bool(s["ha_frame"])) for s in r.sequenze])
+                [dict(_sanitizza_sequenza(s), match_id=mid, ha_frame=bool(s["ha_frame"]))
+                 for s in r.sequenze])
 
         if r.animazioni:
             ids = dict(cn.execute(text(

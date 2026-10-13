@@ -131,4 +131,21 @@ public class TrackingImportService {
             // pulizia best effort
         }
     }
+
+    public ImportDto avviaJobDaCartella(String matchId, Path dir) {
+        boolean conTracking = Files.exists(dir.resolve(FILE_TRACKING));
+
+        TrackingImport imp = new TrackingImport();
+        imp.setStato(StatoImport.IN_CODA);
+        imp.setConTracking(conTracking);
+        imp.setNomeFileEventi(matchId + "_dynamic_events.csv");
+        imp = importRepository.saveAndFlush(imp);
+
+        try {
+            analyticsClient.avviaElaborazione(imp.getId(), dir.getFileName().toString());
+        } catch (RestClientException e) {
+            return chiudiInErrore(imp, "Il servizio di analisi non risponde.");
+        }
+        return rileggi(imp);
+    }
 }

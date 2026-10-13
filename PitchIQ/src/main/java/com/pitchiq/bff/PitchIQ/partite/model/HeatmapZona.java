@@ -27,6 +27,6 @@ public class HeatmapZona {
     @Column(name = "coord_y", nullable = false, precision = 5, scale = 2)
     private BigDecimal coordY;
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")
     private Integer intensita = 1;
 }

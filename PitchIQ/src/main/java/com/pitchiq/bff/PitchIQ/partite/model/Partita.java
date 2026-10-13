@@ -30,10 +30,10 @@ public class Partita {
     @Column(name = "casa_trasferta", nullable = false, length = 10)
     private CasaTrasferta casaTrasferta = CasaTrasferta.CASA;
 
-    @Column(name = "gol_fatti", nullable = false)
+    @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")
     private Integer golFatti = 0;
 
-    @Column(name = "gol_subiti", nullable = false)
+    @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")
     private Integer golSubiti = 0;
 
     @Column(length = 20)

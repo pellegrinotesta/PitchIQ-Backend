@@ -19,34 +19,34 @@ public class StatistichePartita {
     @JoinColumn(name = "partita_id", nullable = false)
     private Partita partita;
 
-    @Column(name = "possesso_pct")
+    @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")
     private Integer possessoPct;
 
-    @Column(name = "tiri_totali")
+    @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")
     private Integer tiriTotali;
 
-    @Column(name = "tiri_in_porta")
+    @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")
     private Integer tiriInPorta;
 
-    @Column
+    @Column(nullable = false, columnDefinition = "SMALLINT UNSIGNED")
     private Integer passaggi;
 
-    @Column(name = "passaggi_riusciti")
+    @Column(nullable = false, columnDefinition = "SMALLINT UNSIGNED")
     private Integer passaggiRiusciti;
 
-    @Column(name = "duelli_vinti")
+    @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")
     private Integer duelliVinti;
 
-    @Column(name = "duelli_totali")
+    @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")
     private Integer duelliTotali;
 
-    @Column
+    @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")
     private Integer corner;
 
-    @Column
+    @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")
     private Integer falli;
 
-    @Column
+    @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")
     private Integer fuorigioco;
 
     @Column(precision = 4, scale = 2)
