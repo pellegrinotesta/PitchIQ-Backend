@@ -53,6 +53,16 @@ Per avviare anche il microfrontend tracking:
 docker compose --profile tracking up --build
 ```
 
+Se il file `.env` si trova invece in `PitchIQ-Backend`, caricalo esplicitamente dalla radice:
+
+```bash
+docker compose --env-file ./PitchIQ-Backend/.env --profile tracking up --build
+```
+
+`JWT_SECRET` deve essere non vuoto e contenere almeno 32 byte UTF-8 casuali.
+Compose interrompe subito l'avvio se la variabile manca o e' vuota.
+Non pubblicare il file `.env` e mantieni stabile la chiave tra i riavvii.
+
 Il BFF sarà disponibile su `http://localhost:8080`; analytics su `http://localhost:8000/health`. Per arrestare i container, esegui `docker compose down` dalla radice.
 
 ## Avvio locale
