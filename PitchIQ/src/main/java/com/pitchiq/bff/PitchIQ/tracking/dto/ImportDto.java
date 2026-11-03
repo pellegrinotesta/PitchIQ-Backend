@@ -13,7 +13,13 @@ public record ImportDto(
         boolean conTracking,
         String nomeFileEventi,
         LocalDateTime creatoIl,
-        LocalDateTime aggiornatoIl) {
+        LocalDateTime aggiornatoIl,
+        boolean ritentabile) {
+
+    public ImportDto(Long id, StatoImport stato, String messaggio, Long matchId, boolean conTracking,
+                     String nomeFileEventi, LocalDateTime creatoIl, LocalDateTime aggiornatoIl) {
+        this(id, stato, messaggio, matchId, conTracking, nomeFileEventi, creatoIl, aggiornatoIl, false);
+    }
 
     public static ImportDto from(TrackingImport i) {
         return new ImportDto(i.getId(), i.getStato(), i.getMessaggio(), i.getMatchId(),

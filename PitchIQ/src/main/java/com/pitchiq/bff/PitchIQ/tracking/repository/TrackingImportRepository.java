@@ -5,6 +5,7 @@ import com.pitchiq.bff.PitchIQ.tracking.entity.TrackingImport;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -12,7 +13,13 @@ import java.util.Optional;
 
 public interface TrackingImportRepository extends JpaRepository<TrackingImport, Long> {
 
-    List<TrackingImport> findTop10ByOrderByCreatoIlDesc();
+    @Query(value = """
+                SELECT * FROM tracking_import i
+                 WHERE :query = '' OR LOWER(CONCAT_WS(' ', i.stato, i.messaggio, i.nome_file_eventi,
+                         CAST(i.match_id AS CHAR), CAST(i.id AS CHAR))) LIKE CONCAT('%', LOWER(:query), '%')
+                 ORDER BY i.creato_il DESC
+                """, nativeQuery = true)
+    List<TrackingImport> cercaTutti(@Param("query") String query);
 
     /** Lettura sempre dal database, mai dall'istanza già in memoria. */
     @Query("""
