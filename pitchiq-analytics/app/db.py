@@ -12,6 +12,10 @@ from sqlalchemy.engine import Engine
 from .pipeline import MatchResult
 
 
+class DuplicateMatch(Exception):
+    """La partita è già presente e non deve essere sovrascritta da un import."""
+
+
 def engine_from_env() -> Engine:
     url = os.getenv("ANALYTICS_DB_URL")  # usato nei test (sqlite)
     if not url:
@@ -53,15 +57,13 @@ def set_status(engine: Engine, import_id: int, stato: str, messaggio: str | None
 
 
 def save_result(engine: Engine, import_id: int, r: MatchResult) -> None:
-    """Sostituisce per intero i dati della partita, in un'unica transazione."""
+    """Salva una nuova partita in un'unica transazione, senza sovrascrivere duplicati."""
     p = r.partita
     with engine.begin() as cn:
         mid = p["match_id"]
-
-        cn.execute(text("""DELETE FROM tracking_frame WHERE sequenza_id IN
-                           (SELECT id FROM tracking_sequenza WHERE match_id = :m)"""), dict(m=mid))
-        cn.execute(text("DELETE FROM tracking_sequenza WHERE match_id = :m"), dict(m=mid))
-        cn.execute(text("DELETE FROM tracking_partita WHERE match_id = :m"), dict(m=mid))
+        exists = cn.execute(text("SELECT 1 FROM tracking_partita WHERE match_id = :m"), {"m": mid}).first()
+        if exists:
+            raise DuplicateMatch(f"La partita {mid} è già presente. Eliminala prima di importarla di nuovo.")
 
         cn.execute(text("""INSERT INTO tracking_partita
             (match_id, import_id, data_partita, squadra_casa, squadra_trasferta, gol_casa,

@@ -45,6 +45,7 @@ class JobRequest(BaseModel):
 
 def run_job(import_id: int, job_dir: Path) -> None:
     t0 = time.monotonic()
+    completed = False
     try:
         db.set_status(engine(), import_id, "IN_ELABORAZIONE")
         result = process(job_dir)
@@ -53,16 +54,20 @@ def run_job(import_id: int, job_dir: Path) -> None:
         msg = (f"{len(result.sequenze)} possessi pressati, {n_sup} pressioni superate, "
                f"{len(result.animazioni)} sequenze animate.")
         db.set_status(engine(), import_id, "COMPLETATO", msg, result.partita["match_id"])
+        completed = True
         log.info("import %s completato in %.1fs: %s", import_id, time.monotonic() - t0, msg)
     except InvalidInput as e:
         db.set_status(engine(), import_id, "ERRORE", str(e))
         log.warning("import %s rifiutato: %s", import_id, e)
+    except db.DuplicateMatch as e:
+        db.set_status(engine(), import_id, "ERRORE", str(e))
+        log.warning("import %s duplicato: %s", import_id, e)
     except Exception:  # noqa: BLE001 - qualunque errore deve chiudere l'import, non lasciarlo appeso
         log.exception("import %s fallito", import_id)
         db.set_status(engine(), import_id, "ERRORE",
                       "Errore interno durante l'elaborazione. Controlla i log di pitchiq-analytics.")
     finally:
-        if not KEEP_FILES:
+        if completed and not KEEP_FILES:
             shutil.rmtree(job_dir, ignore_errors=True)
 
 

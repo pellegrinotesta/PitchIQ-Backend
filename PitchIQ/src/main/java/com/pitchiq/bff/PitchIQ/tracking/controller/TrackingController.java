@@ -41,8 +41,14 @@ public class TrackingController {
 
     @Operation(summary = "Ultimi 10 caricamenti")
     @GetMapping("/import")
-    public List<ImportDto> recenti() {
-        return importService.recenti();
+    public List<ImportDto> recenti(@RequestParam(defaultValue = "") String q) {
+        return importService.recenti(q);
+    }
+
+    @PostMapping("/import/{id}/retry")
+    @ResponseStatus(HttpStatus.ACCEPTED)
+    public ImportDto ritenta(@PathVariable Long id) {
+        return importService.ritenta(id);
     }
 
     @GetMapping("/partite")
