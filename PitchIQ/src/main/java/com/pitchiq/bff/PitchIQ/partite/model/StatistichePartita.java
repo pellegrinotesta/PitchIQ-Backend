@@ -19,7 +19,7 @@ public class StatistichePartita {
     @JoinColumn(name = "partita_id", nullable = false)
     private Partita partita;
 
-    @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")
+    @Column(columnDefinition = "TINYINT UNSIGNED")
     private Integer possessoPct;
 
     @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")

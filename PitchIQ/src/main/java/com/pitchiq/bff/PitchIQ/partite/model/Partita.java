@@ -42,6 +42,9 @@ public class Partita {
     @Column(length = 500)
     private String note;
 
+    @Column(name = "statsbomb_match_id", unique = true)
+    private Integer statsBombMatchId;
+
     @OneToMany(mappedBy = "partita", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<EventoPartita> eventi = new ArrayList<>();
 
