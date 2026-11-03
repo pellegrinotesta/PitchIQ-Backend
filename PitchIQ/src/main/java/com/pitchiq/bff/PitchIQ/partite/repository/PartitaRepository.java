@@ -13,4 +13,6 @@ public interface PartitaRepository extends JpaRepository<Partita, Long> {
 
     @Query("SELECT p FROM Partita p LEFT JOIN FETCH p.eventi WHERE p.id = :id")
     Optional<Partita> findByIdWithEventi(Long id);
+
+    boolean existsByStatsBombMatchId(Integer statsBombMatchId);
 }

@@ -1,5 +1,6 @@
 package com.pitchiq.bff.PitchIQ.partite.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.pitchiq.bff.PitchIQ.common.exception.ResourceNotFoundException;
 import com.pitchiq.bff.PitchIQ.partite.dto.*;
 import com.pitchiq.bff.PitchIQ.partite.model.*;
@@ -8,13 +9,19 @@ import com.pitchiq.bff.PitchIQ.partite.repository.PartitaRepository;
 import com.pitchiq.bff.PitchIQ.partite.repository.ScoutingRepository;
 import com.pitchiq.bff.PitchIQ.squadre.model.Giocatore;
 import com.pitchiq.bff.PitchIQ.squadre.repository.GiocatoreRepository;
+import com.pitchiq.bff.PitchIQ.tracking.service.StatsBombService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -27,6 +34,7 @@ public class PartitaService {
     private final ScoutingRepository scoutingRepository;
     private final GiocatoreRepository giocatoreRepository;
     private final XgCalcolatoreService xgCalcolatoreService;
+    private final StatsBombService statsBombService;
 
     // ===== PARTITE =====
 
@@ -64,6 +72,158 @@ public class PartitaService {
         Partita p = new Partita();
         applyPartitaRequest(p, req);
         return toDto(partitaRepository.save(p), List.of(), null);
+    }
+
+    @Transactional
+    public PartitaDto importaDaStatsBomb(StatsBombImportRequest req) {
+        if (partitaRepository.existsByStatsBombMatchId(req.matchId())) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "Partita StatsBomb già importata");
+        }
+
+        JsonNode match = null;
+        for (JsonNode candidate : statsBombService.partite(req.competitionId(), req.seasonId())) {
+            if (candidate.path("match_id").asInt(-1) == req.matchId()) {
+                match = candidate;
+                break;
+            }
+        }
+        if (match == null) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Partita non trovata nel catalogo StatsBomb");
+        }
+
+        JsonNode home = match.path("home_team");
+        JsonNode away = match.path("away_team");
+        JsonNode analyzedTeam = req.lato() == StatsBombImportRequest.Lato.CASA ? home : away;
+        String homeName = teamName(home);
+        String awayName = teamName(away);
+        String analyzedName = teamName(analyzedTeam);
+        String opponent = req.lato() == StatsBombImportRequest.Lato.CASA ? awayName : homeName;
+
+        LocalDate date;
+        try {
+            date = LocalDate.parse(match.path("match_date").asText());
+        } catch (DateTimeParseException e) {
+            throw new ResponseStatusException(HttpStatus.BAD_GATEWAY, "Data partita StatsBomb non valida");
+        }
+
+        Partita partita = new Partita();
+        partita.setStatsBombMatchId(req.matchId());
+        partita.setData(date);
+        partita.setAvversario(opponent);
+        partita.setCompetizione(match.path("competition").path("competition_name").asText(null));
+        partita.setCasaTrasferta(req.lato() == StatsBombImportRequest.Lato.CASA
+                ? CasaTrasferta.CASA : CasaTrasferta.TRASFERTA);
+        partita.setGolFatti(req.lato() == StatsBombImportRequest.Lato.CASA
+                ? match.path("home_score").asInt(0) : match.path("away_score").asInt(0));
+        partita.setGolSubiti(req.lato() == StatsBombImportRequest.Lato.CASA
+                ? match.path("away_score").asInt(0) : match.path("home_score").asInt(0));
+        partita.setNote("Importata da StatsBomb Open Data. Possesso palla non disponibile.");
+
+        JsonNode events = statsBombService.eventi(req.matchId());
+        int shots = 0;
+        int shotsOnTarget = 0;
+        int passes = 0;
+        int completedPasses = 0;
+        int duels = 0;
+        int wonDuels = 0;
+        int corners = 0;
+        int fouls = 0;
+        int offsides = 0;
+        BigDecimal xg = BigDecimal.ZERO;
+
+        for (JsonNode event : events) {
+            String type = event.path("type").path("name").asText();
+            String eventTeam = teamName(event.path("team"));
+            boolean ours = analyzedName.equals(eventTeam);
+            JsonNode pass = event.path("pass");
+            JsonNode shot = event.path("shot");
+            int minute = Math.max(0, Math.min(255, event.path("minute").asInt(0)));
+            String player = event.path("player").path("name").asText("");
+            String outcome = shot.path("outcome").path("name").asText();
+
+            if (ours && "Shot".equals(type)) {
+                shots++;
+                if (Set.of("Goal", "Saved", "Saved to Post").contains(outcome)) shotsOnTarget++;
+                xg = xg.add(BigDecimal.valueOf(shot.path("statsbomb_xg").asDouble(0)));
+            }
+            if (ours && "Pass".equals(type)) {
+                passes++;
+                if (!pass.hasNonNull("outcome")) completedPasses++;
+                if ("Corner".equals(pass.path("type").path("name").asText())) corners++;
+            }
+            if (ours && "Duel".equals(type)) {
+                duels++;
+                String duelOutcome = event.path("duel").path("outcome").path("name").asText();
+                if (duelOutcome.contains("Won") || duelOutcome.contains("Success")) wonDuels++;
+            }
+            if (ours && "Foul Committed".equals(type)) fouls++;
+            if (ours && "Offside".equals(type)) offsides++;
+
+            TipoEvento timelineType = timelineType(type, outcome, event, ours);
+            if (timelineType != null) {
+                String note = player.isBlank() ? eventTeam : player + " - " + eventTeam;
+                if ("Shot".equals(type) && !outcome.isBlank()) note += " · " + outcome;
+                aggiungiEventoImportato(partita, timelineType, minute, note);
+                if ("Substitution".equals(type)) {
+                    String replacement = event.path("substitution").path("replacement").path("name").asText("");
+                    if (!replacement.isBlank()) {
+                        aggiungiEventoImportato(partita, TipoEvento.SOSTITUZIONE_IN, minute,
+                                replacement + " - " + eventTeam);
+                    }
+                }
+            }
+        }
+
+        StatistichePartita stats = new StatistichePartita();
+        stats.setPartita(partita);
+        stats.setPossessoPct(null);
+        stats.setTiriTotali(shots);
+        stats.setTiriInPorta(shotsOnTarget);
+        stats.setPassaggi(passes);
+        stats.setPassaggiRiusciti(completedPasses);
+        stats.setDuelliVinti(wonDuels);
+        stats.setDuelliTotali(duels);
+        stats.setCorner(corners);
+        stats.setFalli(fouls);
+        stats.setFuorigioco(offsides);
+        stats.setXg(xg.setScale(2, java.math.RoundingMode.HALF_UP));
+        partita.setStatistiche(stats);
+
+        Partita saved = partitaRepository.save(partita);
+        return findById(saved.getId());
+    }
+
+    private String teamName(JsonNode team) {
+        return team.path("home_team_name").asText(team.path("away_team_name").asText(team.path("name").asText("")));
+    }
+
+    private void aggiungiEventoImportato(Partita partita, TipoEvento tipo, int minuto, String nota) {
+        EventoPartita evento = new EventoPartita();
+        evento.setPartita(partita);
+        evento.setMinuto(minuto);
+        evento.setTipo(tipo);
+        evento.setNota(nota.length() > 200 ? nota.substring(0, 200) : nota);
+        partita.getEventi().add(evento);
+    }
+
+    private TipoEvento timelineType(String type, String shotOutcome, JsonNode event, boolean ours) {
+        if ("Shot".equals(type)) {
+            if ("Goal".equals(shotOutcome)) return TipoEvento.GOL;
+            if (!ours && Set.of("Saved", "Saved to Post").contains(shotOutcome)) return TipoEvento.PARATA;
+            return ours ? TipoEvento.TIRO : null;
+        }
+        if ("Pass".equals(type) && ours && event.path("pass").path("goal_assist").asBoolean()) {
+            return TipoEvento.ASSIST;
+        }
+        if ("Ball Recovery".equals(type) && ours) return TipoEvento.RECUPERO;
+        if ("Foul Committed".equals(type)) {
+            String card = event.path("foul_committed").path("card").path("name").asText();
+            if (card.contains("Red")) return TipoEvento.ESPULSIONE;
+            if (card.contains("Yellow")) return TipoEvento.AMMONIZIONE;
+            if (ours) return TipoEvento.FALLO;
+        }
+        if ("Substitution".equals(type)) return TipoEvento.SOSTITUZIONE_OUT;
+        return null;
     }
 
     @Transactional

@@ -31,6 +31,11 @@ public class PartitaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(req));
     }
 
+    @PostMapping("/api/partite/import-statsbomb")
+    public ResponseEntity<PartitaDto> importaStatsBomb(@Valid @RequestBody StatsBombImportRequest req) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(service.importaDaStatsBomb(req));
+    }
+
     @PutMapping("/api/partite/{id}")
     public PartitaDto update(@PathVariable Long id, @Valid @RequestBody PartitaRequest req) {
         return service.update(id, req);
