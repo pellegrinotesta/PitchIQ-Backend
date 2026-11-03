@@ -46,7 +46,7 @@ server:
 
 pitchiq:
   tracking:
-    upload-dir: /Users/pellegrinotesta/Develop/PitchIQ/PitchIQ-Backend/tracking-data
+    upload-dir: ${TRACKING_UPLOAD_DIR:./tracking-data}
     analytics-url: ${ANALYTICS_URL:http://localhost:8000}
     timeout-import: 15m
 
