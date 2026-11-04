@@ -1,0 +1,15 @@
+package com.pitchiq.bff.PitchIQ.squadre.model;
+
+public enum MovimentoTattico {
+    SOVRAPPOSIZIONE,
+    SOTTOPOSIZIONE,
+    INSERIMENTO,
+    TAGLIO_INTERNO,
+    ATTACCO_PROFONDITA,
+    SMARCAMENTO_INCONTRO,
+    AMPIEZZA,
+    RIPIEGAMENTO,
+    SCIVOLAMENTO_LATERALE,
+    COPERTURA,
+    USCITA_PALLA
+}
