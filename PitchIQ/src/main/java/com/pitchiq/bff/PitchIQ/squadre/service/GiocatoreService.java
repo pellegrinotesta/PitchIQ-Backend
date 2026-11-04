@@ -1,5 +1,9 @@
 package com.pitchiq.bff.PitchIQ.squadre.service;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.pitchiq.bff.PitchIQ.common.exception.ResourceNotFoundException;
 import com.pitchiq.bff.PitchIQ.squadre.dto.GiocatoreCreateRequest;
 import com.pitchiq.bff.PitchIQ.squadre.dto.GiocatoreDto;
@@ -9,6 +13,10 @@ import com.pitchiq.bff.PitchIQ.squadre.model.RuoloGiocatore;
 import com.pitchiq.bff.PitchIQ.squadre.model.StatoGiocatore;
 import com.pitchiq.bff.PitchIQ.squadre.repository.GiocatoreRepository;
 import lombok.RequiredArgsConstructor;
+import jakarta.validation.ConstraintViolationException;
+import jakarta.validation.Validator;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -21,6 +29,8 @@ import java.util.List;
 public class GiocatoreService {
 
     private final GiocatoreRepository repository;
+    private final ObjectMapper objectMapper;
+    private final Validator validator;
 
     // --- Query ---
 
@@ -68,6 +78,35 @@ public class GiocatoreService {
     }
 
     @Transactional
+    public GiocatoreDto patch(Long id, JsonNode modifiche) {
+        if (modifiche == null || !modifiche.isObject()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Il profilo parziale deve essere un oggetto JSON");
+        }
+        Giocatore giocatore = getOrThrow(id);
+        ObjectNode profilo = objectMapper.valueToTree(giocatore);
+        profilo.remove("id");
+        var consentiti = java.util.Arrays.stream(GiocatoreCreateRequest.class.getRecordComponents())
+                .map(java.lang.reflect.RecordComponent::getName).collect(java.util.stream.Collectors.toSet());
+        modifiche.fields().forEachRemaining(campo -> {
+            if (!consentiti.contains(campo.getKey())) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Campo del profilo non riconosciuto");
+            }
+            profilo.set(campo.getKey(), campo.getValue());
+        });
+        GiocatoreCreateRequest richiesta;
+        try {
+            richiesta = objectMapper.readerFor(GiocatoreCreateRequest.class)
+                    .without(DeserializationFeature.ACCEPT_FLOAT_AS_INT).readValue(profilo);
+        } catch (java.io.IOException _) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo di dato del profilo non valido");
+        }
+        var violazioni = validator.validate(richiesta);
+        if (!violazioni.isEmpty()) throw new ConstraintViolationException(violazioni);
+        fromRequest(giocatore, richiesta);
+        return toDto(repository.save(giocatore));
+    }
+
+    @Transactional
     public void delete(Long id) {
         if (!repository.existsById(id)) {
             throw new ResourceNotFoundException("Giocatore non trovato: " + id);
@@ -78,9 +117,9 @@ public class GiocatoreService {
     // --- Mapping ---
 
     private GiocatoreDto toDto(Giocatore g) {
-        int eta = g.getDataNascita() != null
-                ? (int) java.time.temporal.ChronoUnit.YEARS.between(g.getDataNascita(), LocalDate.now())
-                : 0;
+        Integer eta = g.getDataNascita() != null
+                ? (int) java.time.temporal.ChronoUnit.YEARS.between(g.getDataNascita(), LocalDate.now(java.time.ZoneId.systemDefault()))
+            : null;
 
         return GiocatoreDto.builder()
                 .id(g.getId())

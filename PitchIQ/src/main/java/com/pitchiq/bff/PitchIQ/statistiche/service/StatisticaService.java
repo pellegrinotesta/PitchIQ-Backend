@@ -26,6 +26,14 @@ public class StatisticaService {
     private final GiocatoreRepository giocatoreRepository;
     private final ProiezioneService proiezioneService;
 
+        public List<StatisticaDto> getStorico(Long giocatoreId) {
+                if (!giocatoreRepository.existsById(giocatoreId)) {
+                        throw new ResourceNotFoundException("Giocatore non trovato: " + giocatoreId);
+                }
+                return repository.findAllByGiocatoreIdOrderByPeriodoAsc(giocatoreId).stream()
+                                .map(this::toDto).toList();
+        }
+
     // Inserisce o aggiorna una statistica per un giocatore/periodo/categoria
     @Transactional
     public StatisticaDto upsert(StatisticaRequest req) {
