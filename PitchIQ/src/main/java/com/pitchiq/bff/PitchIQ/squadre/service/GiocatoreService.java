@@ -144,6 +144,7 @@ public class GiocatoreService {
                 .clausola(g.getClausola())
                 .noteMediche(g.getNoteMediche())
                 .agente(g.getAgente())
+                .movimentiConsentiti(g.getMovimentiConsentiti())
                 .build();
     }
 
@@ -167,6 +168,7 @@ public class GiocatoreService {
         g.setClausola(req.clausola());
         g.setNoteMediche(req.noteMediche());
         g.setAgente(req.agente());
+        g.setMovimentiConsentiti(req.movimentiConsentiti() == null ? null : java.util.List.copyOf(req.movimentiConsentiti()));
         return g;
     }
 

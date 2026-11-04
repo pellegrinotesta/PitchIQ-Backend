@@ -29,5 +29,6 @@ public record GiocatoreDto(
         java.math.BigDecimal valoreMercato,
         java.math.BigDecimal clausola,
         String noteMediche,
-        String agente
+        String agente,
+        java.util.List<com.pitchiq.bff.PitchIQ.squadre.model.MovimentoTattico> movimentiConsentiti
 ) {}

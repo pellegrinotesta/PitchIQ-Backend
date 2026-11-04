@@ -157,6 +157,37 @@ class GiocatoreServiceTest {
         org.mockito.Mockito.verify(repository, org.mockito.Mockito.never()).save(org.mockito.ArgumentMatchers.any());
         }
 
+        @Test
+        void salvaMovimentiEConservaIlProfiloPreesistente() throws Exception {
+            Giocatore giocatore = profilo();
+            when(repository.findById(1L)).thenReturn(Optional.of(giocatore));
+            when(repository.save(giocatore)).thenReturn(giocatore);
+            var aggiornato = service.patch(1L, objectMapper.readTree("{\"movimentiConsentiti\":[\"SOVRAPPOSIZIONE\",\"RIPIEGAMENTO\"]}"));
+            assertThat(aggiornato.movimentiConsentiti()).containsExactly(
+                com.pitchiq.bff.PitchIQ.squadre.model.MovimentoTattico.SOVRAPPOSIZIONE,
+                com.pitchiq.bff.PitchIQ.squadre.model.MovimentoTattico.RIPIEGAMENTO);
+            assertThat(aggiornato.ruolo()).isEqualTo(RuoloGiocatore.DC);
+            assertThat(service.patch(1L, objectMapper.readTree("{\"nome\":\"Nuovo\"}")).movimentiConsentiti()).hasSize(2);
+            assertThat(service.patch(1L, objectMapper.readTree("{\"movimentiConsentiti\":[]}")).movimentiConsentiti()).isEmpty();
+        }
+
+        @Test
+        void rifiutaMovimentiIgnotiDuplicatiONulli() throws Exception {
+            when(repository.findById(1L)).thenReturn(Optional.of(profilo()));
+            org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.patch(1L,
+                objectMapper.readTree("{\"movimentiConsentiti\":[\"IGNOTO\"]}")))
+                .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
+            org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.patch(1L,
+                objectMapper.readTree("{\"movimentiConsentiti\":[\"INSERIMENTO\",\"INSERIMENTO\"]}")))
+                .isInstanceOf(jakarta.validation.ConstraintViolationException.class);
+            org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.patch(1L,
+                objectMapper.readTree("{\"movimentiConsentiti\":[null]}")))
+                .isInstanceOf(jakarta.validation.ConstraintViolationException.class);
+            org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.patch(1L,
+                objectMapper.readTree("{\"movimentiConsentiti\":[\"SOVRAPPOSIZIONE\",\"SOTTOPOSIZIONE\",\"INSERIMENTO\",\"TAGLIO_INTERNO\",\"AMPIEZZA\",\"COPERTURA\",\"USCITA_PALLA\"]}")))
+                .isInstanceOf(jakarta.validation.ConstraintViolationException.class);
+        }
+
         private java.util.Set<String> errori(String json) throws Exception {
         GiocatoreCreateRequest richiesta = new ObjectMapper().findAndRegisterModules().readValue(json, GiocatoreCreateRequest.class);
         try (var factory = Validation.buildDefaultValidatorFactory()) {

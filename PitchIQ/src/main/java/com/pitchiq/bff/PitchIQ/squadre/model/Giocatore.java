@@ -78,4 +78,8 @@ public class Giocatore {
 
     @Column(length = 100)
     private String agente;
+
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(name = "movimenti_consentiti", columnDefinition = "json")
+    private java.util.List<MovimentoTattico> movimentiConsentiti;
 }
