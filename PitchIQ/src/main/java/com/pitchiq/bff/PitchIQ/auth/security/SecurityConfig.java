@@ -74,7 +74,7 @@ public class SecurityConfig {
         // In dev: localhost:4200 (shell) + 4201-4204 (microfrontend in dev isolato)
         // In prod: sovrascrivere con variabile d'ambiente CORS_ORIGINS
         config.setAllowedOrigins(List.of(allowedOrigins.split(",")));
-        config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         config.setAllowCredentials(false); // JWT su header, non cookie
 

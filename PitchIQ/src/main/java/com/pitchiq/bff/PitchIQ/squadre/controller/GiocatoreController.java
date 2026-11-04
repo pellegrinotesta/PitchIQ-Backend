@@ -57,6 +57,11 @@ public class GiocatoreController {
         return service.update(id, req);
     }
 
+    @PatchMapping("/{id}")
+    public GiocatoreDto patch(@PathVariable Long id, @RequestBody com.fasterxml.jackson.databind.JsonNode modifiche) {
+        return service.patch(id, modifiche);
+    }
+
     // DELETE /api/squadre/giocatori/{id}
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {

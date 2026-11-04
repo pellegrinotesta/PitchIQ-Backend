@@ -41,4 +41,22 @@ public class GlobalExceptionHandler {
         pd.setTitle("Errore");
         return pd;
     }
+
+    @ExceptionHandler(org.springframework.web.server.ResponseStatusException.class)
+    public ProblemDetail handleStatus(org.springframework.web.server.ResponseStatusException ex) {
+        return ProblemDetail.forStatusAndDetail(ex.getStatusCode(), ex.getReason() != null ? ex.getReason() : "Richiesta non valida");
+    }
+
+    @ExceptionHandler(jakarta.validation.ConstraintViolationException.class)
+    public ProblemDetail handleConstraint(jakarta.validation.ConstraintViolationException ex) {
+        ProblemDetail pd = ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "Uno o piu campi non sono validi");
+        pd.setProperty("errors", ex.getConstraintViolations().stream().collect(Collectors.toMap(
+                errore -> errore.getPropertyPath().toString(), errore -> errore.getMessage(), (primo, secondo) -> primo)));
+        return pd;
+    }
+
+    @ExceptionHandler(org.springframework.http.converter.HttpMessageNotReadableException.class)
+    public ProblemDetail handleUnreadable(org.springframework.http.converter.HttpMessageNotReadableException ex) {
+        return ProblemDetail.forStatusAndDetail(HttpStatus.BAD_REQUEST, "JSON o tipo di dato non valido");
+    }
 }

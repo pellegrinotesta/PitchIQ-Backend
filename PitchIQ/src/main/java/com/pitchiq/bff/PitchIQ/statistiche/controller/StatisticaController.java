@@ -21,6 +21,11 @@ public class StatisticaController {
     private final StatisticaService service;
     private final ConfrontoService confrontoService;
 
+    @GetMapping("/giocatori/{id}/storico")
+    public List<StatisticaDto> getStorico(@PathVariable Long id) {
+        return service.getStorico(id);
+    }
+
     // Inserisci/aggiorna un valore
     @PostMapping
     public StatisticaDto upsert(@Valid @RequestBody StatisticaRequest req) {
