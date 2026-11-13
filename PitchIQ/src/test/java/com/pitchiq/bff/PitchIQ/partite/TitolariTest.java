@@ -3,7 +3,9 @@ package com.pitchiq.bff.PitchIQ.partite;
 import com.pitchiq.bff.PitchIQ.common.exception.GlobalExceptionHandler;
 import com.pitchiq.bff.PitchIQ.partite.controller.PartitaController;
 import com.pitchiq.bff.PitchIQ.partite.model.Partita;
+import com.pitchiq.bff.PitchIQ.partite.model.EventoPartita;
 import com.pitchiq.bff.PitchIQ.partite.model.StatistichePartita;
+import com.pitchiq.bff.PitchIQ.partite.model.TipoEvento;
 import com.pitchiq.bff.PitchIQ.partite.repository.HeatmapRepository;
 import com.pitchiq.bff.PitchIQ.partite.repository.PartitaRepository;
 import com.pitchiq.bff.PitchIQ.partite.repository.ScoutingRepository;
@@ -60,6 +62,31 @@ class TitolariTest {
                 .andExpect(status().isOk()).andExpect(content().json("[]", true));
         mvc.perform(get("/api/partite/99/titolari")).andExpect(status().isNotFound());
         verify(giocatori, never()).findTitolariByPartitaId(99L);
+    }
+
+    @Test
+    void ordinaIlRecuperoPrimaDelSecondoTempo() throws Exception {
+        Partita partita = new Partita();
+        partita.setId(1L);
+        EventoPartita secondoTempo = new EventoPartita();
+        secondoTempo.setMinuto(46);
+        secondoTempo.setPeriodo(2);
+        secondoTempo.setTipo(TipoEvento.GOL);
+        EventoPartita recupero = new EventoPartita();
+        recupero.setMinuto(45);
+        recupero.setMinutoAggiuntivo(2);
+        recupero.setPeriodo(1);
+        recupero.setTipo(TipoEvento.AMMONIZIONE);
+        partita.getEventi().add(secondoTempo);
+        partita.getEventi().add(recupero);
+        when(partite.findByIdWithEventi(1L)).thenReturn(Optional.of(partita));
+        when(giocatori.findAllById(any())).thenReturn(List.of());
+
+        mvc.perform(get("/api/partite/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.eventi[0].minuto").value(45))
+                .andExpect(jsonPath("$.eventi[0].minutoAggiuntivo").value(2))
+                .andExpect(jsonPath("$.eventi[1].minuto").value(46));
     }
 
     @Test
