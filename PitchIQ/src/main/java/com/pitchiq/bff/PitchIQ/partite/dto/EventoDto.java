@@ -9,6 +9,7 @@ import java.math.BigDecimal;
 public record EventoDto(
         Long id,
         Integer minuto,
+        Integer minutoAggiuntivo,
         TipoEvento tipo,
         Long giocatoreId,
         String nomeGiocatore,

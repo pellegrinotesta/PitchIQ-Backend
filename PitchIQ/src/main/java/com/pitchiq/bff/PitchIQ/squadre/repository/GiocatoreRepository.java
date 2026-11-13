@@ -23,10 +23,13 @@ public interface GiocatoreRepository extends JpaRepository<Giocatore, Long> {
     List<Giocatore> findAllByCognomeContainingIgnoreCase(String cognome);
 
     @Query(value = """
-            SELECT g.* FROM giocatori g
+            SELECT g.id AS id, g.nome AS nome, g.cognome AS cognome,
+                   pc.posizione_partita AS posizione, pc.numero_maglia_partita AS numeroMaglia,
+                   pc.modulo_fonte AS moduloFonte
+            FROM giocatori g
             JOIN partita_convocati pc ON pc.giocatore_id = g.id
             WHERE pc.partita_id = :partitaId AND pc.titolare = TRUE
             ORDER BY g.cognome, g.nome, g.id
             """, nativeQuery = true)
-    List<Giocatore> findTitolariByPartitaId(@Param("partitaId") Long partitaId);
+    List<TitolareProjection> findTitolariByPartitaId(@Param("partitaId") Long partitaId);
 }

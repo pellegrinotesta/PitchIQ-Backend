@@ -57,7 +57,10 @@ public class PartitaService {
                 .collect(Collectors.toMap(Giocatore::getId, g -> g));
 
         List<EventoDto> eventi = p.getEventi().stream()
-                .sorted((a, b) -> a.getMinuto().compareTo(b.getMinuto()))
+                .sorted(Comparator.comparingInt((EventoPartita e) -> e.getPeriodo() != null
+                                ? e.getPeriodo() : (e.getMinuto() <= 45 ? 1 : 2))
+                        .thenComparing(EventoPartita::getMinuto)
+                        .thenComparingInt(e -> e.getMinutoAggiuntivo() != null ? e.getMinutoAggiuntivo() : 0))
                 .map(e -> toEventoDto(e, gMap.get(e.getGiocatoreId())))
                 .toList();
 
@@ -72,7 +75,8 @@ public class PartitaService {
             throw new ResourceNotFoundException("Partita non trovata: " + partitaId);
         }
         return giocatoreRepository.findTitolariByPartitaId(partitaId).stream()
-                .map(g -> new TitolareDto(g.getId(), g.getNome(), g.getCognome()))
+                .map(g -> new TitolareDto(g.getId(), g.getNome(), g.getCognome(),
+                        g.getPosizione(), g.getNumeroMaglia(), g.getModuloFonte()))
                 .toList();
     }
 
@@ -444,6 +448,7 @@ public class PartitaService {
         return EventoDto.builder()
                 .id(e.getId())
                 .minuto(e.getMinuto())
+                .minutoAggiuntivo(e.getMinutoAggiuntivo())
                 .tipo(e.getTipo())
                 .giocatoreId(e.getGiocatoreId())
                 .nomeGiocatore(g != null ? g.getNome() : null)
