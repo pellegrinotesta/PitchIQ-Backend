@@ -67,6 +67,15 @@ public class PartitaService {
         return toDto(p, eventi, stats);
     }
 
+    public List<TitolareDto> findTitolari(Long partitaId) {
+        if (!partitaRepository.existsById(partitaId)) {
+            throw new ResourceNotFoundException("Partita non trovata: " + partitaId);
+        }
+        return giocatoreRepository.findTitolariByPartitaId(partitaId).stream()
+                .map(g -> new TitolareDto(g.getId(), g.getNome(), g.getCognome()))
+                .toList();
+    }
+
     @Transactional
     public PartitaDto create(PartitaRequest req) {
         Partita p = new Partita();
