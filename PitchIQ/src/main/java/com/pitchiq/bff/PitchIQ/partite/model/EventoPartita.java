@@ -23,6 +23,15 @@ public class EventoPartita {
     @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")
     private Integer minuto;
 
+    @Column(columnDefinition = "TINYINT UNSIGNED")
+    private Integer periodo;
+
+    @Column(name = "minuto_aggiuntivo", columnDefinition = "TINYINT UNSIGNED")
+    private Integer minutoAggiuntivo;
+
+    @Column(name = "riferimento_esterno", length = 64)
+    private String riferimentoEsterno;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     private TipoEvento tipo;

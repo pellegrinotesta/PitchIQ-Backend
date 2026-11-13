@@ -9,8 +9,8 @@ import com.pitchiq.bff.PitchIQ.partite.repository.PartitaRepository;
 import com.pitchiq.bff.PitchIQ.partite.repository.ScoutingRepository;
 import com.pitchiq.bff.PitchIQ.partite.service.PartitaService;
 import com.pitchiq.bff.PitchIQ.partite.service.XgCalcolatoreService;
-import com.pitchiq.bff.PitchIQ.squadre.model.Giocatore;
 import com.pitchiq.bff.PitchIQ.squadre.repository.GiocatoreRepository;
+import com.pitchiq.bff.PitchIQ.squadre.repository.TitolareProjection;
 import com.pitchiq.bff.PitchIQ.tracking.service.StatsBombService;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
@@ -37,16 +37,19 @@ class TitolariTest {
 
     @Test
     void restituisceSoloDatiPubbliciDeiTitolari() throws Exception {
-        Giocatore giocatore = new Giocatore();
-        giocatore.setId(7L);
-        giocatore.setNome("Raffaele");
-        giocatore.setCognome("Russo");
+        TitolareProjection giocatore = mock(TitolareProjection.class);
+        when(giocatore.getId()).thenReturn(7L);
+        when(giocatore.getNome()).thenReturn("Raffaele");
+        when(giocatore.getCognome()).thenReturn("Russo");
+        when(giocatore.getPosizione()).thenReturn("CF-L");
+        when(giocatore.getNumeroMaglia()).thenReturn(10);
+        when(giocatore.getModuloFonte()).thenReturn("3-5-2");
         when(partite.existsById(1L)).thenReturn(true);
         when(giocatori.findTitolariByPartitaId(1L)).thenReturn(List.of(giocatore));
 
         mvc.perform(get("/api/partite/1/titolari"))
                 .andExpect(status().isOk())
-                .andExpect(content().json("[{\"id\":7,\"nome\":\"Raffaele\",\"cognome\":\"Russo\"}]", true));
+                .andExpect(content().json("[{\"id\":7,\"nome\":\"Raffaele\",\"cognome\":\"Russo\",\"posizione\":\"CF-L\",\"numeroMaglia\":10,\"moduloFonte\":\"3-5-2\"}]", true));
     }
 
     @Test
