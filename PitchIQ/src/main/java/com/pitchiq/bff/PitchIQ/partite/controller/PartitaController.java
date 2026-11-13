@@ -26,6 +26,9 @@ public class PartitaController {
     @GetMapping("/api/partite/{id}")
     public PartitaDto getById(@PathVariable Long id) { return service.findById(id); }
 
+    @GetMapping("/api/partite/{id}/titolari")
+    public List<TitolareDto> getTitolari(@PathVariable Long id) { return service.findTitolari(id); }
+
     @PostMapping("/api/partite")
     public ResponseEntity<PartitaDto> create(@Valid @RequestBody PartitaRequest req) {
         return ResponseEntity.status(HttpStatus.CREATED).body(service.create(req));

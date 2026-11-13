@@ -11,7 +11,7 @@ spring:
 
   flyway:
     # In dev carichiamo anche i seed dati di esempio
-    locations: classpath:db/migration,classpath:db/testdata
+    locations: classpath:db/migration,classpath:db/test-data
 
 server:
   error:

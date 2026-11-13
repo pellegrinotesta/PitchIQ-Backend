@@ -11,25 +11,25 @@ ON DUPLICATE KEY UPDATE username = username;
 -- =============================================
 INSERT INTO giocatori (nome, cognome, data_nascita, ruolo, numero_maglia, piede_preferito, contratto_inizio, contratto_fine, stato) VALUES
 -- Portieri
-('Marco',      'Donnarumma',  '1999-02-25', 'PORTIERE',        1,  'DESTRO',    '2023-07-01', '2027-06-30', 'ATTIVO'),
-('Luca',       'Serafini',    '2001-05-14', 'PORTIERE',        22, 'DESTRO',    '2024-07-01', '2027-06-30', 'ATTIVO'),
+('Marco',      'Donnarumma',  '1999-02-25', 'POR',             1,  'DESTRO',    '2023-07-01', '2027-06-30', 'ATTIVO'),
+('Luca',       'Serafini',    '2001-05-14', 'POR',             22, 'DESTRO',    '2024-07-01', '2027-06-30', 'ATTIVO'),
 -- Difensori
-('Alessandro', 'Bastoni',     '1999-04-13', 'DIFENSORE',       5,  'SINISTRO',  '2022-07-01', '2027-06-30', 'ATTIVO'),
-('Giovanni',   'Di Lorenzo',  '1993-08-04', 'DIFENSORE',       2,  'DESTRO',    '2021-07-01', '2026-06-30', 'ATTIVO'),
-('Federico',   'Gatti',       '1998-06-22', 'DIFENSORE',       6,  'DESTRO',    '2023-01-01', '2027-06-30', 'ATTIVO'),
-('Davide',     'Calabria',    '1996-12-06', 'DIFENSORE',       4,  'DESTRO',    '2022-07-01', '2026-06-30', 'INFORTUNATO'),
+('Alessandro', 'Bastoni',     '1999-04-13', 'DC',              5,  'SINISTRO',  '2022-07-01', '2027-06-30', 'ATTIVO'),
+('Giovanni',   'Di Lorenzo',  '1993-08-04', 'TSD',             2,  'DESTRO',    '2021-07-01', '2026-06-30', 'ATTIVO'),
+('Federico',   'Gatti',       '1998-06-22', 'DC',              6,  'DESTRO',    '2023-01-01', '2027-06-30', 'ATTIVO'),
+('Davide',     'Calabria',    '1996-12-06', 'TSS',             4,  'DESTRO',    '2022-07-01', '2026-06-30', 'INFORTUNATO'),
 -- Centrocampisti
-('Nicolo',     'Barella',     '1997-02-07', 'CENTROCAMPISTA',  8,  'DESTRO',    '2021-07-01', '2026-06-30', 'ATTIVO'),
-('Sandro',     'Tonali',      '2000-05-08', 'CENTROCAMPISTA',  14, 'DESTRO',    '2023-07-01', '2027-06-30', 'ATTIVO'),
-('Matteo',     'Pessina',     '1997-04-21', 'CENTROCAMPISTA',  7,  'DESTRO',    '2022-07-01', '2026-06-30', 'ATTIVO'),
-('Lorenzo',    'Pellegrini',  '1996-06-19', 'CENTROCAMPISTA',  10, 'DESTRO',    '2021-07-01', '2026-06-30', 'SQUALIFICATO'),
-('Manuel',     'Locatelli',   '1998-01-08', 'CENTROCAMPISTA',  16, 'DESTRO',    '2023-07-01', '2027-06-30', 'ATTIVO'),
+('Nicolo',     'Barella',     '1997-02-07', 'CC',              8,  'DESTRO',    '2021-07-01', '2026-06-30', 'ATTIVO'),
+('Sandro',     'Tonali',      '2000-05-08', 'CDC',             14, 'DESTRO',    '2023-07-01', '2027-06-30', 'ATTIVO'),
+('Matteo',     'Pessina',     '1997-04-21', 'CC',              7,  'DESTRO',    '2022-07-01', '2026-06-30', 'ATTIVO'),
+('Lorenzo',    'Pellegrini',  '1996-06-19', 'MOC',             10, 'DESTRO',    '2021-07-01', '2026-06-30', 'SQUALIFICATO'),
+('Manuel',     'Locatelli',   '1998-01-08', 'CDC',             16, 'DESTRO',    '2023-07-01', '2027-06-30', 'ATTIVO'),
 -- Attaccanti
-('Lautaro',    'Martinez',    '1997-08-22', 'ATTACCANTE',      9,  'DESTRO',    '2023-07-01', '2028-06-30', 'ATTIVO'),
-('Federico',   'Chiesa',      '1997-10-25', 'ATTACCANTE',      11, 'SINISTRO',  '2022-07-01', '2027-06-30', 'ATTIVO'),
-('Giacomo',    'Raspadori',   '2000-02-18', 'ATTACCANTE',      23, 'DESTRO',    '2024-07-01', '2028-06-30', 'ATTIVO'),
-('Moise',      'Kean',        '2000-02-28', 'ATTACCANTE',      18, 'DESTRO',    '2024-07-01', '2028-06-30', 'ATTIVO'),
-('Matteo',     'Politano',    '1993-08-03', 'ATTACCANTE',      21, 'SINISTRO',  '2021-07-01', '2026-06-30', 'ATTIVO')
+('Lautaro',    'Martinez',    '1997-08-22', 'PC',              9,  'DESTRO',    '2023-07-01', '2028-06-30', 'ATTIVO'),
+('Federico',   'Chiesa',      '1997-10-25', 'ALS',             11, 'SINISTRO',  '2022-07-01', '2027-06-30', 'ATTIVO'),
+('Giacomo',    'Raspadori',   '2000-02-18', 'SP',              23, 'DESTRO',    '2024-07-01', '2028-06-30', 'ATTIVO'),
+('Moise',      'Kean',        '2000-02-28', 'PC',              18, 'DESTRO',    '2024-07-01', '2028-06-30', 'ATTIVO'),
+('Matteo',     'Politano',    '1993-08-03', 'FW',              21, 'SINISTRO',  '2021-07-01', '2026-06-30', 'ATTIVO')
 ON DUPLICATE KEY UPDATE nome = nome;
 
 -- =============================================
