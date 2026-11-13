@@ -333,6 +333,7 @@ public class PartitaService {
         stats.setFalli(req.falli());
         stats.setFuorigioco(req.fuorigioco());
         stats.setXg(req.xg());
+        stats.setFonte(null);
 
         partitaRepository.save(p);
         return findById(partitaId);
@@ -464,6 +465,7 @@ public class PartitaService {
                 .falli(s.getFalli())
                 .fuorigioco(s.getFuorigioco())
                 .xg(s.getXg())
+                .fonte(s.getFonte())
                 .build();
     }
 

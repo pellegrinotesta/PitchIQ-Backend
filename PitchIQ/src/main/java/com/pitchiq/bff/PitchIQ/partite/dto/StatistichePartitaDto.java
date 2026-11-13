@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 
 @Builder
 public record StatistichePartitaDto(
-        Integer possessoPct,
+        BigDecimal possessoPct,
         Integer tiriTotali,
         Integer tiriInPorta,
         Integer passaggi,
@@ -15,5 +15,6 @@ public record StatistichePartitaDto(
         Integer corner,
         Integer falli,
         Integer fuorigioco,
-        BigDecimal xg
+        BigDecimal xg,
+        String fonte
 ) {}

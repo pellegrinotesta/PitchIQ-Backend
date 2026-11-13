@@ -3,7 +3,7 @@ package com.pitchiq.bff.PitchIQ.partite.dto;
 import java.math.BigDecimal;
 
 public record StatisticheRequest(
-        Integer possessoPct,
+        BigDecimal possessoPct,
         Integer tiriTotali,
         Integer tiriInPorta,
         Integer passaggi,

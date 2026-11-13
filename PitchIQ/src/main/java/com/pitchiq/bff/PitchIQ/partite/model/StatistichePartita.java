@@ -19,36 +19,39 @@ public class StatistichePartita {
     @JoinColumn(name = "partita_id", nullable = false)
     private Partita partita;
 
-    @Column(columnDefinition = "TINYINT UNSIGNED")
-    private Integer possessoPct;
+    @Column(precision = 4, scale = 1)
+    private BigDecimal possessoPct;
 
-    @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")
+    @Column(columnDefinition = "TINYINT UNSIGNED")
     private Integer tiriTotali;
 
-    @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")
+    @Column(columnDefinition = "TINYINT UNSIGNED")
     private Integer tiriInPorta;
 
-    @Column(nullable = false, columnDefinition = "SMALLINT UNSIGNED")
+    @Column(columnDefinition = "SMALLINT UNSIGNED")
     private Integer passaggi;
 
-    @Column(nullable = false, columnDefinition = "SMALLINT UNSIGNED")
+    @Column(columnDefinition = "SMALLINT UNSIGNED")
     private Integer passaggiRiusciti;
 
-    @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")
+    @Column(columnDefinition = "TINYINT UNSIGNED")
     private Integer duelliVinti;
 
-    @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")
+    @Column(columnDefinition = "TINYINT UNSIGNED")
     private Integer duelliTotali;
 
-    @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")
+    @Column(columnDefinition = "TINYINT UNSIGNED")
     private Integer corner;
 
-    @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")
+    @Column(columnDefinition = "TINYINT UNSIGNED")
     private Integer falli;
 
-    @Column(nullable = false, columnDefinition = "TINYINT UNSIGNED")
+    @Column(columnDefinition = "TINYINT UNSIGNED")
     private Integer fuorigioco;
 
     @Column(precision = 4, scale = 2)
     private BigDecimal xg;
+
+    @Column(length = 255)
+    private String fonte;
 }
