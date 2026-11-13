@@ -2,6 +2,8 @@ package com.pitchiq.bff.PitchIQ.partite;
 
 import com.pitchiq.bff.PitchIQ.common.exception.GlobalExceptionHandler;
 import com.pitchiq.bff.PitchIQ.partite.controller.PartitaController;
+import com.pitchiq.bff.PitchIQ.partite.model.Partita;
+import com.pitchiq.bff.PitchIQ.partite.model.StatistichePartita;
 import com.pitchiq.bff.PitchIQ.partite.repository.HeatmapRepository;
 import com.pitchiq.bff.PitchIQ.partite.repository.PartitaRepository;
 import com.pitchiq.bff.PitchIQ.partite.repository.ScoutingRepository;
@@ -14,9 +16,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import java.util.List;
+import java.util.Optional;
+import java.math.BigDecimal;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 class TitolariTest {
@@ -51,5 +57,28 @@ class TitolariTest {
                 .andExpect(status().isOk()).andExpect(content().json("[]", true));
         mvc.perform(get("/api/partite/99/titolari")).andExpect(status().isNotFound());
         verify(giocatori, never()).findTitolariByPartitaId(99L);
+    }
+
+    @Test
+    void salvaPossessoDecimaleEDatiParzialiSenzaAttribuirliAllaFontePrecedente() throws Exception {
+        Partita partita = new Partita();
+        partita.setId(1L);
+        StatistichePartita statistiche = new StatistichePartita();
+        statistiche.setPartita(partita);
+        statistiche.setFonte("ESPN");
+        partita.setStatistiche(statistiche);
+        when(partite.findById(1L)).thenReturn(Optional.of(partita));
+        when(partite.findByIdWithEventi(1L)).thenReturn(Optional.of(partita));
+        when(giocatori.findAllById(any())).thenReturn(List.of());
+
+        mvc.perform(post("/api/partite/1/statistiche")
+                        .contentType("application/json")
+                        .content("{\"possessoPct\":37.3,\"tiriTotali\":12}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.statistiche.possessoPct").value(37.3))
+                .andExpect(jsonPath("$.statistiche.tiriTotali").value(12));
+        assertThat(statistiche.getPossessoPct()).isEqualByComparingTo(new BigDecimal("37.3"));
+        assertThat(statistiche.getDuelliVinti()).isNull();
+        assertThat(statistiche.getFonte()).isNull();
     }
 }
