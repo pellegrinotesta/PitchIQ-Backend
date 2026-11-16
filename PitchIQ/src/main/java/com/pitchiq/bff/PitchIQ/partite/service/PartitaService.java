@@ -407,8 +407,16 @@ public class PartitaService {
         p.setAvversario(req.avversario());
         p.setCompetizione(req.competizione());
         p.setCasaTrasferta(req.casaTrasferta() != null ? req.casaTrasferta() : CasaTrasferta.CASA);
-        p.setGolFatti(req.golFatti() != null ? req.golFatti() : 0);
-        p.setGolSubiti(req.golSubiti() != null ? req.golSubiti() : 0);
+        boolean giocata = !Boolean.FALSE.equals(req.giocata());
+        p.setGiocata(giocata);
+        // Una partita in calendario non ha punteggio
+        p.setGolFatti(giocata && req.golFatti() != null ? req.golFatti() : 0);
+        p.setGolSubiti(giocata && req.golSubiti() != null ? req.golSubiti() : 0);
+        p.setOraInizio(req.oraInizio());
+        if (req.scoutingId() != null && !scoutingRepository.existsById(req.scoutingId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Report di scouting non trovato");
+        }
+        p.setScoutingId(req.scoutingId());
         p.setModulo(req.modulo());
         p.setNote(req.note());
     }
@@ -437,7 +445,10 @@ public class PartitaService {
                 .casaTrasferta(p.getCasaTrasferta())
                 .golFatti(p.getGolFatti())
                 .golSubiti(p.getGolSubiti())
-                .risultato(calcolaRisultato(p))
+                .risultato(p.isGiocata() ? calcolaRisultato(p) : null)
+                .giocata(p.isGiocata())
+                .oraInizio(p.getOraInizio())
+                .scoutingId(p.getScoutingId())
                 .modulo(p.getModulo())
                 .note(p.getNote())
                 .eventi(eventi)

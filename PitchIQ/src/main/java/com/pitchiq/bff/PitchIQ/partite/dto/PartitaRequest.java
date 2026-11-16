@@ -13,5 +13,9 @@ public record PartitaRequest(
         Integer golFatti,
         Integer golSubiti,
         String modulo,
-        String note
+        String note,
+        // null = giocata, per compatibilità con i client esistenti
+        Boolean giocata,
+        java.time.LocalTime oraInizio,
+        Long scoutingId
 ) {}

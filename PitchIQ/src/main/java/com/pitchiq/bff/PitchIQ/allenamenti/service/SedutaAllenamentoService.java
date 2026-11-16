@@ -123,6 +123,10 @@ public class SedutaAllenamentoService {
                 p.setPresente(pr.presente());
                 p.setMotivoAssenza(pr.motivoAssenza());
                 p.setValutazione(pr.valutazione());
+                // Un assente non ha carico
+                boolean presente = Boolean.TRUE.equals(pr.presente());
+                p.setMinuti(presente ? pr.minuti() : null);
+                p.setRpe(presente ? pr.rpe() : null);
                 s.getPresenze().add(p);
             });
         }
@@ -155,6 +159,8 @@ public class SedutaAllenamentoService {
                 .presente(p.getPresente())
                 .motivoAssenza(p.getMotivoAssenza())
                 .valutazione(p.getValutazione())
+                .minuti(p.getMinuti())
+                .rpe(p.getRpe())
                 .build();
     }
 }

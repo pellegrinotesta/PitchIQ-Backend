@@ -1,6 +1,7 @@
 package com.pitchiq.bff.PitchIQ.allenamenti.dto;
 
 import com.pitchiq.bff.PitchIQ.allenamenti.model.TipoSeduta;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDate;
@@ -14,5 +15,5 @@ public record SedutaRequest(
         @NotNull TipoSeduta tipo,
         String luogo,
         String note,
-        List<PresenzaRequest> presenze
+        List<@Valid PresenzaRequest> presenze
 ) {}

@@ -42,6 +42,17 @@ public class Partita {
     @Column(length = 500)
     private String note;
 
+    // false = in calendario, risultato non ancora disponibile
+    @Column(nullable = false)
+    private boolean giocata = true;
+
+    @Column(name = "ora_inizio")
+    private java.time.LocalTime oraInizio;
+
+    // Report di scouting dell'avversario (scouting_avversari.id)
+    @Column(name = "scouting_id")
+    private Long scoutingId;
+
     @Column(name = "statsbomb_match_id", unique = true)
     private Integer statsBombMatchId;
 

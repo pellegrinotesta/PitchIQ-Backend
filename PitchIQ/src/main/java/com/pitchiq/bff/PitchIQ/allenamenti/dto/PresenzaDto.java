@@ -12,5 +12,7 @@ public record PresenzaDto(
         String ruolo,
         Boolean presente,
         String motivoAssenza,
-        Integer valutazione
+        Integer valutazione,
+        Integer minuti,
+        Integer rpe
 ) {}

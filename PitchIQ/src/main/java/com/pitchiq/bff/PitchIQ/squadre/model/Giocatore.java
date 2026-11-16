@@ -82,4 +82,13 @@ public class Giocatore {
     @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
     @Column(name = "movimenti_consentiti", columnDefinition = "json")
     private java.util.List<MovimentoTattico> movimentiConsentiti;
+
+    // null = non ancora classificato
+    @Enumerated(EnumType.STRING)
+    @Column(length = 10)
+    private FormazioneVivaio formazione;
+
+    // Over 22 tesserato ma non inserito nella lista dei 25
+    @Column(name = "fuori_lista", nullable = false)
+    private boolean fuoriLista;
 }

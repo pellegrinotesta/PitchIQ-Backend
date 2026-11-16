@@ -27,7 +27,9 @@ public record GiocatoreCreateRequest(
                 @PositiveOrZero @Digits(integer = 10, fraction = 2) java.math.BigDecimal clausola,
                 @Size(max = 500) String noteMediche,
                 @Size(max = 100) String agente,
-                @Size(max = 6) java.util.List<@NotNull MovimentoTattico> movimentiConsentiti
+                @Size(max = 6) java.util.List<@NotNull MovimentoTattico> movimentiConsentiti,
+                com.pitchiq.bff.PitchIQ.squadre.model.FormazioneVivaio formazione,
+                Boolean fuoriLista
 ) {
         @com.fasterxml.jackson.annotation.JsonIgnore
         @AssertTrue(message = "La fine del contratto non puo precedere l'inizio")

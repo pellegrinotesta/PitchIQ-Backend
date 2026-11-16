@@ -30,4 +30,12 @@ public class Presenza {
     // Valutazione 1-10, null se assente
     @Column(nullable = false, columnDefinition = "TINYINT")
     private Integer valutazione;
+
+    // Minuti svolti; null = intera durata della seduta
+    @Column(columnDefinition = "SMALLINT UNSIGNED")
+    private Integer minuti;
+
+    // Sforzo percepito 1-10 (scala CR10), null se non rilevato
+    @Column(columnDefinition = "TINYINT")
+    private Integer rpe;
 }

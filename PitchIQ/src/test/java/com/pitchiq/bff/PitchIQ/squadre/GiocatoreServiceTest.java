@@ -20,7 +20,135 @@ class GiocatoreServiceTest {
     private final GiocatoreRepository repository = mock(GiocatoreRepository.class);
         private final ObjectMapper objectMapper = new ObjectMapper().findAndRegisterModules();
         private final GiocatoreService service = new GiocatoreService(repository, objectMapper,
-            Validation.buildDefaultValidatorFactory().getValidator());
+            Validation.buildDefaultValidatorFactory().getValidator(),
+            new com.pitchiq.bff.PitchIQ.squadre.service.AccessoDatiRiservati());
+
+    @org.junit.jupiter.api.BeforeEach
+    void accedeComeAdmin() {
+        accedeCome("ADMIN");
+    }
+
+    @org.junit.jupiter.api.AfterEach
+    void esce() {
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+    }
+
+    private void accedeCome(String ruolo) {
+        org.springframework.security.core.context.SecurityContextHolder.getContext().setAuthentication(
+                new org.springframework.security.authentication.UsernamePasswordAuthenticationToken("utente", null,
+                        java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_" + ruolo))));
+    }
+
+    private Giocatore profiloRiservato() {
+        Giocatore giocatore = profilo();
+        giocatore.setStipendioAnnuo(new java.math.BigDecimal("900000"));
+        giocatore.setClausola(new java.math.BigDecimal("5000000"));
+        giocatore.setAgente("Agente");
+        giocatore.setValoreMercato(new java.math.BigDecimal("2000000"));
+        giocatore.setNoteMediche("Lesione al flessore");
+        return giocatore;
+    }
+
+    @Test
+    void ogniRuoloVedeSoloIDatiRiservatiDiCompetenza() {
+        when(repository.findById(1L)).thenReturn(Optional.of(profiloRiservato()));
+
+        accedeCome("ALLENATORE");
+        var allenatore = service.findById(1L);
+        assertThat(allenatore.stipendioAnnuo()).isNull();
+        assertThat(allenatore.clausola()).isNull();
+        assertThat(allenatore.agente()).isNull();
+        assertThat(allenatore.noteMediche()).isNull();
+        assertThat(allenatore.valoreMercato()).isEqualByComparingTo("2000000");
+        assertThat(allenatore.datiEconomiciVisibili()).isFalse();
+        assertThat(allenatore.datiMediciVisibili()).isFalse();
+
+        accedeCome("DIRIGENTE");
+        var dirigente = service.findById(1L);
+        assertThat(dirigente.stipendioAnnuo()).isEqualByComparingTo("900000");
+        assertThat(dirigente.agente()).isEqualTo("Agente");
+        assertThat(dirigente.noteMediche()).isNull();
+        assertThat(dirigente.datiEconomiciVisibili()).isTrue();
+
+        accedeCome("MEDICO");
+        var medico = service.findById(1L);
+        assertThat(medico.noteMediche()).isEqualTo("Lesione al flessore");
+        assertThat(medico.stipendioAnnuo()).isNull();
+        assertThat(medico.datiMediciVisibili()).isTrue();
+
+        accedeCome("ADMIN");
+        var admin = service.findById(1L);
+        assertThat(admin.stipendioAnnuo()).isNotNull();
+        assertThat(admin.noteMediche()).isNotNull();
+    }
+
+    @Test
+    void senzaAutenticazioneNessunDatoRiservatoEsce() {
+        org.springframework.security.core.context.SecurityContextHolder.clearContext();
+        when(repository.findAll()).thenReturn(java.util.List.of(profiloRiservato()));
+        assertThat(service.findAll()).singleElement().satisfies(g -> {
+            assertThat(g.stipendioAnnuo()).isNull();
+            assertThat(g.noteMediche()).isNull();
+        });
+    }
+
+    @Test
+    void chiNonVedeUnDatoRiservatoNonPuoModificarloNeCancellarlo() throws Exception {
+        Giocatore giocatore = profiloRiservato();
+        when(repository.findById(1L)).thenReturn(Optional.of(giocatore));
+        when(repository.save(giocatore)).thenReturn(giocatore);
+        accedeCome("ALLENATORE");
+
+        for (String vietato : java.util.List.of("{\"stipendioAnnuo\":1}", "{\"clausola\":null}",
+                "{\"agente\":\"Altro\"}", "{\"noteMediche\":null}")) {
+            org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.patch(1L, objectMapper.readTree(vietato)))
+                    .isInstanceOfSatisfying(org.springframework.web.server.ResponseStatusException.class,
+                            e -> assertThat(e.getStatusCode().value()).isEqualTo(403));
+        }
+        org.mockito.Mockito.verify(repository, org.mockito.Mockito.never()).save(org.mockito.ArgumentMatchers.any());
+
+        // Modifica consentita e sostituzione completa: i dati riservati restano intatti
+        service.patch(1L, objectMapper.readTree("{\"nome\":\"Nuovo\"}"));
+        service.update(1L, objectMapper.readValue(
+                "{\"nome\":\"Nuovo\",\"cognome\":\"Rossi\",\"ruolo\":\"DC\",\"numeroMaglia\":5}", GiocatoreCreateRequest.class));
+        assertThat(giocatore.getNome()).isEqualTo("Nuovo");
+        assertThat(giocatore.getStipendioAnnuo()).isEqualByComparingTo("900000");
+        assertThat(giocatore.getClausola()).isEqualByComparingTo("5000000");
+        assertThat(giocatore.getAgente()).isEqualTo("Agente");
+        assertThat(giocatore.getNoteMediche()).isEqualTo("Lesione al flessore");
+        assertThat(giocatore.getValoreMercato()).isNull();
+    }
+
+    @Test
+    void salvaFormazioneEFuoriListaEPreservaIlValoreSeOmesso() throws Exception {
+        Giocatore giocatore = profilo();
+        when(repository.findById(1L)).thenReturn(Optional.of(giocatore));
+        when(repository.save(giocatore)).thenReturn(giocatore);
+        assertThat(service.findById(1L).formazione()).isNull();
+        assertThat(service.findById(1L).fuoriLista()).isFalse();
+
+        var aggiornato = service.patch(1L, objectMapper.readTree("{\"formazione\":\"CLUB\",\"fuoriLista\":true}"));
+        assertThat(aggiornato.formazione()).isEqualTo(com.pitchiq.bff.PitchIQ.squadre.model.FormazioneVivaio.CLUB);
+        assertThat(aggiornato.fuoriLista()).isTrue();
+
+        var dopo = service.patch(1L, objectMapper.readTree("{\"nome\":\"Nuovo\"}"));
+        assertThat(dopo.formazione()).isEqualTo(com.pitchiq.bff.PitchIQ.squadre.model.FormazioneVivaio.CLUB);
+        assertThat(dopo.fuoriLista()).isTrue();
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> service.patch(1L,
+                objectMapper.readTree("{\"formazione\":\"IGNOTA\"}")))
+                .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
+    }
+
+    @Test
+    void ilMedicoAggiornaLeNoteMaNonIDatiEconomici() throws Exception {
+        Giocatore giocatore = profiloRiservato();
+        when(repository.findById(1L)).thenReturn(Optional.of(giocatore));
+        when(repository.save(giocatore)).thenReturn(giocatore);
+        accedeCome("MEDICO");
+        assertThat(service.patch(1L, objectMapper.readTree("{\"noteMediche\":\"Guarito\"}")).noteMediche()).isEqualTo("Guarito");
+        assertThat(giocatore.getStipendioAnnuo()).isEqualByComparingTo("900000");
+    }
 
     @Test
     void etaSconosciutaNonDiventaZero() {

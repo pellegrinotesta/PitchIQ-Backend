@@ -30,5 +30,10 @@ public record GiocatoreDto(
         java.math.BigDecimal clausola,
         String noteMediche,
         String agente,
-        java.util.List<com.pitchiq.bff.PitchIQ.squadre.model.MovimentoTattico> movimentiConsentiti
+        // false = i campi corrispondenti sono null perché riservati, non perché vuoti
+        boolean datiEconomiciVisibili,
+        boolean datiMediciVisibili,
+        java.util.List<com.pitchiq.bff.PitchIQ.squadre.model.MovimentoTattico> movimentiConsentiti,
+        com.pitchiq.bff.PitchIQ.squadre.model.FormazioneVivaio formazione,
+        boolean fuoriLista
 ) {}
