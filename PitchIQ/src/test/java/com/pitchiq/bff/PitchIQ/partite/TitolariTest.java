@@ -55,6 +55,40 @@ class TitolariTest {
     }
 
     @Test
+    void partitaInCalendarioNonHaRisultatoNePunteggio() throws Exception {
+        var scouting = mock(ScoutingRepository.class);
+        var servizio = new PartitaService(partite, mock(HeatmapRepository.class), scouting, giocatori, xg,
+                mock(StatsBombService.class));
+        when(partite.save(any(Partita.class))).thenAnswer(chiamata -> {
+            Partita salvata = chiamata.getArgument(0);
+            salvata.setId(5L);
+            when(partite.findByIdWithEventi(5L)).thenReturn(Optional.of(salvata));
+            when(partite.findById(5L)).thenReturn(Optional.of(salvata));
+            return salvata;
+        });
+        when(scouting.existsById(3L)).thenReturn(true);
+        var data = java.time.LocalDate.of(2026, 11, 22);
+
+        var programmata = servizio.create(new com.pitchiq.bff.PitchIQ.partite.dto.PartitaRequest(
+                data, "Milan", "Serie A", null, 4, 2, null, null, false, java.time.LocalTime.of(20, 45), 3L));
+        assertThat(programmata.giocata()).isFalse();
+        assertThat(programmata.risultato()).isNull();
+        assertThat(programmata.golFatti()).isZero();
+        assertThat(programmata.oraInizio()).isEqualTo(java.time.LocalTime.of(20, 45));
+        assertThat(programmata.scoutingId()).isEqualTo(3L);
+
+        // Inserito il risultato, la partita entra nel rendimento; senza il flag vale "giocata"
+        var giocata = servizio.update(5L, new com.pitchiq.bff.PitchIQ.partite.dto.PartitaRequest(
+                data, "Milan", "Serie A", null, 2, 1, null, null, null, null, 3L));
+        assertThat(giocata.giocata()).isTrue();
+        assertThat(giocata.risultato()).isEqualTo("V");
+
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> servizio.create(
+                new com.pitchiq.bff.PitchIQ.partite.dto.PartitaRequest(data, "Milan", null, null, 0, 0, null, null, false, null, 99L)))
+                .isInstanceOf(org.springframework.web.server.ResponseStatusException.class);
+    }
+
+    @Test
     void distinguePartitaSenzaTitolariDaPartitaInesistente() throws Exception {
         when(partite.existsById(1L)).thenReturn(true);
         when(giocatori.findTitolariByPartitaId(1L)).thenReturn(List.of());

@@ -14,7 +14,10 @@ public record PartitaDto(
         CasaTrasferta casaTrasferta,
         Integer golFatti,
         Integer golSubiti,
-        String risultato,     // "V" | "P" | "N"
+        String risultato,     // "V" | "P" | "N"; null se la partita non è ancora stata giocata
+        boolean giocata,
+        java.time.LocalTime oraInizio,
+        Long scoutingId,
         String modulo,
         String note,
         List<EventoDto> eventi,

@@ -22,6 +22,6 @@ public class Utenti {
     @Column(name = "password_hash", nullable = false)
     private String passwordHash;
 
-    @Column(nullable = false, columnDefinition = "ENUM('ALLENATORE','DIRIGENTE','ADMIN')")
+    @Column(nullable = false, columnDefinition = "ENUM('ALLENATORE','DIRIGENTE','MEDICO','ADMIN')")
     private String ruolo;
 }

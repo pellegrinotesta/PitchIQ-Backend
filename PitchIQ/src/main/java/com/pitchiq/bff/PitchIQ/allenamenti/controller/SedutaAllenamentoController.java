@@ -1,7 +1,9 @@
 package com.pitchiq.bff.PitchIQ.allenamenti.controller;
 
+import com.pitchiq.bff.PitchIQ.allenamenti.dto.CaricoGiocatoreDto;
 import com.pitchiq.bff.PitchIQ.allenamenti.dto.SedutaDto;
 import com.pitchiq.bff.PitchIQ.allenamenti.dto.SedutaRequest;
+import com.pitchiq.bff.PitchIQ.allenamenti.service.CaricoLavoroService;
 import com.pitchiq.bff.PitchIQ.allenamenti.service.SedutaAllenamentoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,14 @@ import java.util.List;
 public class SedutaAllenamentoController {
 
     private final SedutaAllenamentoService service;
+    private final CaricoLavoroService caricoService;
+
+    // Carico acuto/cronico per giocatore alla data indicata (default: oggi)
+    @GetMapping("/carico")
+    public List<CaricoGiocatoreDto> carico(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate al) {
+        return caricoService.carico(al != null ? al : LocalDate.now());
+    }
 
     @GetMapping
     public List<SedutaDto> getAll(

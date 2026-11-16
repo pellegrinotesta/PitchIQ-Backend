@@ -31,6 +31,7 @@ public class GiocatoreService {
     private final GiocatoreRepository repository;
     private final ObjectMapper objectMapper;
     private final Validator validator;
+    private final AccessoDatiRiservati accesso;
 
     // --- Query ---
 
@@ -91,6 +92,9 @@ public class GiocatoreService {
             if (!consentiti.contains(campo.getKey())) {
                 throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Campo del profilo non riconosciuto");
             }
+            if (accesso.vietato(campo.getKey())) {
+                throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Non sei autorizzato a modificare questo dato");
+            }
             profilo.set(campo.getKey(), campo.getValue());
         });
         GiocatoreCreateRequest richiesta;
@@ -121,6 +125,9 @@ public class GiocatoreService {
                 ? (int) java.time.temporal.ChronoUnit.YEARS.between(g.getDataNascita(), LocalDate.now(java.time.ZoneId.systemDefault()))
             : null;
 
+        boolean economici = accesso.economici();
+        boolean medici = accesso.medici();
+
         return GiocatoreDto.builder()
                 .id(g.getId())
                 .nome(g.getNome())
@@ -139,12 +146,16 @@ public class GiocatoreService {
                 .luogoNascita(g.getLuogoNascita())
                 .altezzaCm(g.getAltezzaCm())
                 .pesoKg(g.getPesoKg())
-                .stipendioAnnuo(g.getStipendioAnnuo())
+                .stipendioAnnuo(economici ? g.getStipendioAnnuo() : null)
                 .valoreMercato(g.getValoreMercato())
-                .clausola(g.getClausola())
-                .noteMediche(g.getNoteMediche())
-                .agente(g.getAgente())
+                .clausola(economici ? g.getClausola() : null)
+                .noteMediche(medici ? g.getNoteMediche() : null)
+                .agente(economici ? g.getAgente() : null)
+                .datiEconomiciVisibili(economici)
+                .datiMediciVisibili(medici)
                 .movimentiConsentiti(g.getMovimentiConsentiti())
+                .formazione(g.getFormazione())
+                .fuoriLista(g.isFuoriLista())
                 .build();
     }
 
@@ -163,12 +174,19 @@ public class GiocatoreService {
         g.setLuogoNascita(req.luogoNascita());
         g.setAltezzaCm(req.altezzaCm());
         g.setPesoKg(req.pesoKg());
-        g.setStipendioAnnuo(req.stipendioAnnuo());
         g.setValoreMercato(req.valoreMercato());
-        g.setClausola(req.clausola());
-        g.setNoteMediche(req.noteMediche());
-        g.setAgente(req.agente());
+        // Chi non vede un dato riservato lo riceve null: ignorarlo evita che un salvataggio lo cancelli
+        if (accesso.economici()) {
+            g.setStipendioAnnuo(req.stipendioAnnuo());
+            g.setClausola(req.clausola());
+            g.setAgente(req.agente());
+        }
+        if (accesso.medici()) {
+            g.setNoteMediche(req.noteMediche());
+        }
         g.setMovimentiConsentiti(req.movimentiConsentiti() == null ? null : java.util.List.copyOf(req.movimentiConsentiti()));
+        g.setFormazione(req.formazione());
+        g.setFuoriLista(Boolean.TRUE.equals(req.fuoriLista()));
         return g;
     }
 
