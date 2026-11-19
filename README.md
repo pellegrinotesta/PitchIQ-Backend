@@ -13,7 +13,7 @@ Il BFF ascolta sulla porta `8080`; il servizio analytics sulla porta `8000`. Il 
 ## Prerequisiti
 
 - Java 24 per l'esecuzione locale del BFF.
-- MySQL raggiungibile su `localhost:3307`, con database `pitch_iq`.
+- MySQL raggiungibile su `localhost:3307` per l'esecuzione locale del BFF e di analytics.
 - Python 3.12 per l'esecuzione locale del servizio analytics.
 - Docker e Docker Compose per avviare i servizi containerizzati.
 
@@ -33,22 +33,16 @@ Flyway applica automaticamente le migrazioni all'avvio. Il datasource locale usa
 
 ## Avvio con Docker Compose
 
-Il file Compose si trova nella radice del repository, non in questa cartella. Avvia MySQL sull'host alla porta `3307`, crea il database `pitch_iq` e crea un file `.env` nella radice del repository con:
+Il file Compose si trova nella radice del repository, non in questa cartella. Compose avvia MySQL 8.4 in un container e crea il database `pitch_iq` su un nuovo volume persistente. Crea un file `.env` nella radice del repository con:
 
 ```dotenv
-DB_USERNAME=il_tuo_utente
-DB_PASSWORD=la_tua_password
+DB_USERNAME=pitchiq
+DB_PASSWORD=imposta_una_password_mysql_sicura
 JWT_SECRET=imposta_una_chiave_sicura_di_almeno_32_caratteri
 CORS_ORIGINS=http://localhost:4200
 ```
 
-Dalla radice del repository:
-
-```bash
-docker compose up --build
-```
-
-Per avviare anche il microfrontend tracking:
+Dalla radice del repository avvia tutti i moduli, incluso tracking:
 
 ```bash
 docker compose --profile tracking up --build
@@ -64,7 +58,9 @@ docker compose --env-file ./PitchIQ-Backend/.env --profile tracking up --build
 Compose interrompe subito l'avvio se la variabile manca o e' vuota.
 Non pubblicare il file `.env` e mantieni stabile la chiave tra i riavvii.
 
-Il BFF sarà disponibile su `http://localhost:8080`; analytics su `http://localhost:8000/health`. Per arrestare i container, esegui `docker compose down` dalla radice.
+La shell sarà disponibile su `http://localhost:4200`; il microfrontend tracking su
+`http://localhost:4206`; BFF su `http://localhost:8080` e analytics su
+`http://localhost:8000/health`. Non usare `docker compose down -v` se vuoi conservare il database.
 
 ## Avvio locale
 
