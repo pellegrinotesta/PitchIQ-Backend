@@ -4,3 +4,4 @@ pandas==2.2.*
 numpy==2.1.*
 sqlalchemy==2.0.*
 pymysql==1.1.*
+opencv-python-headless==4.10.*

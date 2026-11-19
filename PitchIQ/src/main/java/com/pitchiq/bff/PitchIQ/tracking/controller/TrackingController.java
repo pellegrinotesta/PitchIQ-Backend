@@ -4,9 +4,11 @@ import com.pitchiq.bff.PitchIQ.tracking.dto.*;
 import com.pitchiq.bff.PitchIQ.tracking.entity.EsitoPressione;
 import com.pitchiq.bff.PitchIQ.tracking.service.TrackingImportService;
 import com.pitchiq.bff.PitchIQ.tracking.service.TrackingQueryService;
+import com.pitchiq.bff.PitchIQ.tracking.service.TrackingVideoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/tracking")
@@ -23,6 +26,26 @@ public class TrackingController {
 
     private final TrackingImportService importService;
     private final TrackingQueryService queryService;
+    private final TrackingVideoService videoService;
+
+    @Operation(summary = "Carica un video per l'estrazione sperimentale di clip candidate")
+    @PostMapping(path = "/video-analyses", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<VideoAnalysisDto> caricaVideo(@RequestPart("video") MultipartFile video) {
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(videoService.carica(video));
+    }
+
+    @Operation(summary = "Stato e clip candidate di un'analisi video")
+    @GetMapping("/video-analyses/{id}")
+    public VideoAnalysisDto statoVideo(@PathVariable UUID id) {
+        return videoService.stato(id);
+    }
+
+    @GetMapping("/video-analyses/{id}/clips/{clipId}")
+    public ResponseEntity<Resource> clipVideo(@PathVariable UUID id, @PathVariable String clipId) {
+        return ResponseEntity.ok()
+                .contentType(MediaType.valueOf("video/mp4"))
+                .body(videoService.clip(id, clipId));
+    }
 
     @Operation(summary = "Carica i file SkillCorner di una partita e avvia l'elaborazione")
     @PostMapping(path = "/import", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
