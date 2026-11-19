@@ -2,14 +2,18 @@
 Servizio interno di elaborazione. Non è esposto al frontend: lo chiama solo il BFF.
 
 POST /jobs  {"importId": 12, "cartella": "12"}  -> 202, elaborazione in background
+POST /video-jobs  {"jobId": "<uuid>"}            -> 202, estrazione clip candidate
+GET  /video-jobs/{id}                            -> stato e segmenti rilevati
 GET  /health
 """
 from __future__ import annotations
 
+import json
 import logging
 import os
 import shutil
 import time
+from uuid import UUID
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -18,6 +22,7 @@ from pydantic import BaseModel, Field
 
 from . import db
 from .pipeline import InvalidInput, process
+from .video_pipeline import VideoInputError, analyze_video
 
 log = logging.getLogger("pitchiq.analytics")
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -41,6 +46,45 @@ def engine():
 class JobRequest(BaseModel):
     importId: int = Field(gt=0)
     cartella: str = Field(min_length=1, max_length=100)
+
+
+class VideoJobRequest(BaseModel):
+    jobId: UUID
+
+
+def video_job_dir(job_id: UUID) -> Path:
+    return UPLOAD_ROOT / "video-jobs" / str(job_id)
+
+
+def save_video_state(job_dir: Path, state: dict) -> None:
+    path = job_dir / "state.json"
+    temporary = path.with_suffix(".tmp")
+    temporary.write_text(json.dumps(state, ensure_ascii=False), encoding="utf-8")
+    temporary.replace(path)
+
+
+def run_video_job(job_id: UUID, job_dir: Path) -> None:
+    state = {"id": str(job_id), "stato": "IN_ELABORAZIONE", "messaggio": None,
+             "durataSecondi": None, "eventi": []}
+    save_video_state(job_dir, state)
+    try:
+        result = analyze_video(job_dir / "source", job_dir / "clips")
+        state.update(stato="COMPLETATO", durataSecondi=result["durataSecondi"],
+                     eventi=result["eventi"],
+                     messaggio=f"{len(result['eventi'])} clip candidate da verificare.")
+        save_video_state(job_dir, state)
+    except VideoInputError as exc:
+        shutil.rmtree(job_dir / "clips", ignore_errors=True)
+        state.update(stato="ERRORE", messaggio=str(exc))
+        save_video_state(job_dir, state)
+        log.warning("analisi video %s rifiutata: %s", job_id, exc)
+    except Exception:
+        shutil.rmtree(job_dir / "clips", ignore_errors=True)
+        log.exception("analisi video %s fallita", job_id)
+        state.update(stato="ERRORE", messaggio="Errore interno durante l'analisi video.")
+        save_video_state(job_dir, state)
+    finally:
+        (job_dir / "source").unlink(missing_ok=True)
 
 
 def run_job(import_id: int, job_dir: Path) -> None:
@@ -78,6 +122,27 @@ def submit(req: JobRequest):
         raise HTTPException(400, f"Cartella non trovata: {req.cartella}")
     executor.submit(run_job, req.importId, job_dir)
     return {"importId": req.importId, "stato": "IN_CODA"}
+
+
+@app.post("/video-jobs", status_code=202)
+def submit_video(req: VideoJobRequest):
+    job_dir = video_job_dir(req.jobId).resolve()
+    if UPLOAD_ROOT not in job_dir.parents or not (job_dir / "source").is_file():
+        raise HTTPException(400, "Video non trovato.")
+    if (job_dir / "state.json").exists():
+        raise HTTPException(409, "Analisi video già avviata.")
+    save_video_state(job_dir, {"id": str(req.jobId), "stato": "IN_CODA",
+                               "messaggio": None, "durataSecondi": None, "eventi": []})
+    executor.submit(run_video_job, req.jobId, job_dir)
+    return {"id": str(req.jobId), "stato": "IN_CODA"}
+
+
+@app.get("/video-jobs/{job_id}")
+def video_status(job_id: UUID):
+    state_file = video_job_dir(job_id) / "state.json"
+    if not state_file.is_file():
+        raise HTTPException(404, "Analisi video non trovata.")
+    return json.loads(state_file.read_text(encoding="utf-8"))
 
 
 @app.get("/health")

@@ -6,6 +6,7 @@ Backend della piattaforma PitchIQ, composto da un BFF REST in Spring Boot e da u
 
 - `PitchIQ/`: API REST, autenticazione JWT, accesso a MySQL e migrazioni Flyway.
 - `pitchiq-analytics/`: servizio FastAPI che elabora le importazioni di tracking richieste dal BFF.
+- L'analisi video sperimentale estrae clip candidate in base al movimento visivo; non classifica ancora le singole azioni.
 
 Il BFF ascolta sulla porta `8080`; il servizio analytics sulla porta `8000`. Il frontend comunica con il BFF, mentre analytics viene chiamato internamente dal BFF.
 
@@ -91,4 +92,41 @@ In locale, analytics usa per impostazione predefinita `host.docker.internal:3307
 - OpenAPI: `http://localhost:8080/v3/api-docs`
 - Health analytics: `http://localhost:8000/health`
 - Test BFF: dalla cartella `PitchIQ`, esegui `./mvnw test` (su Windows `mvnw.cmd test`).
+- Test del rilevamento video: dalla cartella `pitchiq-analytics`, esegui `python -m unittest tests.test_video_pipeline`.
 - Test end-to-end analytics su SQLite: dalla cartella `pitchiq-analytics`, esegui `python -m tests.e2e_sqlite <cartella_con_i_file_della_partita>`.
+
+L'upload video accetta MP4, MOV e WebM fino a 250 MB e 2 minuti. Le clip generate mostrano un indice
+relativo di movimento, non una confidenza di riconoscimento; per classificare passaggi, tiri,
+dribbling, contrasti, intercetti e gol serve integrare o addestrare un modello dedicato.
+
+### Dataset video per il riconoscimento delle azioni
+
+Per preparare un dataset iniziale dal SoccerNet Ball Action Spotting 2024:
+
+1. Richiedi l'accesso e firma l'NDA sul [sito ufficiale SoccerNet](https://www.soccer-net.org/data).
+   Il repository di codice è MIT, ma questo **non** concede una licenza sui video; non scaricare,
+   distribuire o usare i filmati fuori dai termini accettati.
+2. Installa il downloader ufficiale: `python -m pip install SoccerNet`.
+3. Dalla cartella `PitchIQ-Backend/pitchiq-analytics`, esegui:
+
+   ```bash
+   python tools/prepare_soccernet_dataset.py `
+     --source data/soccernet `
+     --output data/prepared-soccernet `
+     --download
+   ```
+
+   Su shell POSIX sostituisci i backtick di PowerShell con `\` a fine riga. Lo script chiede la
+   password NDA senza salvarla, scarica i soli split train/valid/test e genera `annotations.jsonl`
+   e `summary.json`. I video restano nella cartella sorgente e non vengono copiati.
+
+Il dataset pubblico disponibile per le ball actions copre sette partite riprese in modalità
+broadcast, non riprese tattiche fisse. Contiene passaggi, tiri, gol e contrasti riusciti; `Drive`
+viene mantenuto come classe distinta (non equivale automaticamente a dribbling) e non contiene una
+classe d'intercetto. Il riepilogo segnala esplicitamente le classi senza annotazioni utilizzabili.
+Per completare le sei classi richieste e addestrare sul tipo di ripresa desiderato occorrono
+annotazioni aggiuntive, soprattutto intercetti e riprese tattiche. Il dataset seed da solo non
+consente di certificare un classificatore completo.
+
+La normalizzazione si può verificare senza scaricare il dataset:
+`python -B -m unittest tests.test_prepare_soccernet_dataset tests.test_video_pipeline`.
