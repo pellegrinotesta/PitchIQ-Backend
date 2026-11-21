@@ -13,6 +13,11 @@ import com.pitchiq.bff.PitchIQ.tattiche.repository.FormazioneRepository;
 import com.pitchiq.bff.PitchIQ.partite.repository.PartitaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+import com.pitchiq.bff.PitchIQ.tattiche.model.FaseFormazione;
+import com.pitchiq.bff.PitchIQ.tattiche.model.FaseGioco;
+import com.pitchiq.bff.PitchIQ.tattiche.dto.PosizioneCampoRequest;
+import java.util.EnumMap;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -108,6 +113,28 @@ public class FormazioneService {
                 f.getPosizioni().add(pos);
             });
         }
+        f.setFasi(fasiDeiTitolari(req));
+    }
+
+    /**
+     * Le fasi riguardano solo i titolari: chi è uscito dallo schieramento viene tolto dalle fasi,
+     * le fasi rimaste senza posizioni né frecce non vengono salvate.
+     */
+    static Map<FaseGioco, FaseFormazione> fasiDeiTitolari(FormazioneRequest req) {
+        if (req.fasi() == null || req.fasi().isEmpty()) return null;
+        Set<Long> titolari = req.posizioni() == null ? Set.of() : req.posizioni().stream()
+                .filter(p -> p.titolare() == null || p.titolare())
+                .map(PosizioneCampoRequest::giocatoreId)
+                .collect(Collectors.toSet());
+        Map<FaseGioco, FaseFormazione> pulite = new EnumMap<>(FaseGioco.class);
+        req.fasi().forEach((fase, contenuto) -> {
+            if (fase == null || contenuto == null) return;
+            List<FaseFormazione.PosizioneFase> posizioni = contenuto.posizioni() == null ? List.of()
+                    : contenuto.posizioni().stream().filter(p -> titolari.contains(p.giocatoreId())).toList();
+            List<FaseFormazione.FrecciaFase> frecce = contenuto.frecce() == null ? List.of() : contenuto.frecce();
+            if (!posizioni.isEmpty() || !frecce.isEmpty()) pulite.put(fase, new FaseFormazione(posizioni, frecce));
+        });
+        return pulite.isEmpty() ? null : pulite;
     }
 
     private FormazioneDto toDto(Formazione f, List<PosizioneCampoDto> posizioni) {
@@ -119,6 +146,7 @@ public class FormazioneService {
                 .note(f.getNote())
                 .partitaId(f.getPartitaId())
                 .posizioni(posizioni)
+                .fasi(f.getFasi() == null ? Map.of() : f.getFasi())
                 .build();
     }
 

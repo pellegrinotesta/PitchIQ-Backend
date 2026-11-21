@@ -13,6 +13,8 @@ public record FormazioneDto(
         LocalDate data,
         String note,
         Long partitaId,
-        List<PosizioneCampoDto> posizioni
+        List<PosizioneCampoDto> posizioni,
+        java.util.Map<com.pitchiq.bff.PitchIQ.tattiche.model.FaseGioco,
+                com.pitchiq.bff.PitchIQ.tattiche.model.FaseFormazione> fasi
 ) {
 }

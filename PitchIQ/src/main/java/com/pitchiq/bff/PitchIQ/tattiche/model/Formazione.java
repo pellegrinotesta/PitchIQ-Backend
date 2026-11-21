@@ -34,6 +34,11 @@ public class Formazione {
     @Column(name = "partita_id")
     private Long partitaId;
 
+    /** Disposizione dei titolari per fase di gioco; null o vuoto se non ancora definita. */
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(columnDefinition = "json")
+    private java.util.Map<FaseGioco, FaseFormazione> fasi;
+
     @OneToMany(mappedBy = "formazione", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PosizioneCampo> posizioni = new ArrayList<>();
 }
