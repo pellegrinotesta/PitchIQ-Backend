@@ -8,7 +8,10 @@ import org.springframework.web.client.RestClient;
 import java.util.Map;
 import java.util.UUID;
 
+import com.pitchiq.bff.PitchIQ.tracking.dto.ModelloEventiDto;
 import com.pitchiq.bff.PitchIQ.tracking.dto.VideoAnalysisDto;
+
+import java.util.List;
 
 /** Chiamata al servizio interno pitchiq-analytics (FastAPI). */
 @Component
@@ -37,6 +40,23 @@ public class AnalyticsClient {
                 .body(Map.of("jobId", jobId))
                 .retrieve()
                 .toBodilessEntity();
+    }
+
+    /** esempi: [{"etichetta": "TIRO", "caratteristiche": {...}}] */
+    public ModelloEventiDto addestraModelloEventi(List<Map<String, Object>> esempi) {
+        return restClient.post()
+                .uri("/event-model")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(Map.of("esempi", esempi))
+                .retrieve()
+                .body(ModelloEventiDto.class);
+    }
+
+    public ModelloEventiDto statoModelloEventi() {
+        return restClient.get()
+                .uri("/event-model")
+                .retrieve()
+                .body(ModelloEventiDto.class);
     }
 
     public VideoAnalysisDto statoAnalisiVideo(UUID jobId) {

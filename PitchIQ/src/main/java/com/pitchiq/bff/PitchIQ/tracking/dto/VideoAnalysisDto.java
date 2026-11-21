@@ -1,6 +1,7 @@
 package com.pitchiq.bff.PitchIQ.tracking.dto;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 public record VideoAnalysisDto(UUID id, String stato, String messaggio, Double durataSecondi,
@@ -20,6 +21,23 @@ public record VideoAnalysisDto(UUID id, String stato, String messaggio, Double d
     /** giocatori e palla sono valorizzati solo con il metodo "giocatori". */
     public record Campione(double secondo, double valore, Integer giocatori, Boolean palla) {}
 
+    /**
+     * caratteristiche, indizi e proposta arrivano da pitchiq-analytics (assenti nelle analisi meno recenti);
+     * etichettaUtente è aggiunta dal BFF dalle etichette salvate nel database.
+     */
     public record Evento(String id, String etichetta, double inizioSecondi, double fineSecondi,
-                         double intensitaMovimento) {}
+                         double intensitaMovimento, Map<String, Double> caratteristiche, List<String> indizi,
+                         Proposta proposta, String etichettaUtente) {
+
+        public Evento conEtichettaUtente(String valore) {
+            return new Evento(id, etichetta, inizioSecondi, fineSecondi, intensitaMovimento,
+                    caratteristiche, indizi, proposta, valore);
+        }
+    }
+
+    public record Proposta(String etichetta, double confidenza) {}
+
+    public VideoAnalysisDto conEventi(List<Evento> nuoviEventi) {
+        return new VideoAnalysisDto(id, stato, messaggio, durataSecondi, nuoviEventi, movimento, nomeFile);
+    }
 }
