@@ -28,7 +28,8 @@ class SchemaFormazioneServiceTest {
     private final SchemaFormazioneRepository schemi = mock(SchemaFormazioneRepository.class);
     private final FormazioneRepository formazioni = mock(FormazioneRepository.class);
     private final GiocatoreRepository giocatori = mock(GiocatoreRepository.class);
-    private final SchemaFormazioneService service = new SchemaFormazioneService(schemi, formazioni, giocatori);
+    private final SchemaFormazioneService service = new SchemaFormazioneService(schemi, formazioni, giocatori,
+            mock(com.pitchiq.bff.PitchIQ.partite.repository.PartitaRepository.class));
 
     private final Formazione formazione = new Formazione();
     private final SchemaFormazione schema = new SchemaFormazione();

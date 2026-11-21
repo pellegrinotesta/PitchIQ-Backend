@@ -30,6 +30,10 @@ public class Formazione {
     @Column(length = 500)
     private String note;
 
+    /** Partita del calendario per cui è preparata; null per le formazioni generiche. */
+    @Column(name = "partita_id")
+    private Long partitaId;
+
     @OneToMany(mappedBy = "formazione", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PosizioneCampo> posizioni = new ArrayList<>();
 }

@@ -12,6 +12,7 @@ public record FormazioneDto(
         String modulo,
         LocalDate data,
         String note,
+        Long partitaId,
         List<PosizioneCampoDto> posizioni
 ) {
 }

@@ -10,6 +10,7 @@ public record FormazioneRequest(
         @NotBlank String modulo,
         LocalDate data,
         String note,
+        Long partitaId,
         List<PosizioneCampoRequest> posizioni
 ) {
 }

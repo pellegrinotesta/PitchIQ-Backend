@@ -10,6 +10,9 @@ import com.pitchiq.bff.PitchIQ.tattiche.dto.PosizioneCampoDto;
 import com.pitchiq.bff.PitchIQ.tattiche.model.Formazione;
 import com.pitchiq.bff.PitchIQ.tattiche.model.PosizioneCampo;
 import com.pitchiq.bff.PitchIQ.tattiche.repository.FormazioneRepository;
+import com.pitchiq.bff.PitchIQ.partite.repository.PartitaRepository;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +28,7 @@ public class FormazioneService {
 
     private final FormazioneRepository formazioneRepository;
     private final GiocatoreRepository giocatoreRepository;
+    private final PartitaRepository partitaRepository;
 
     public List<FormazioneDto> findAll() {
         return formazioneRepository.findAllOrderByDataDesc().stream()
@@ -83,6 +87,10 @@ public class FormazioneService {
         f.setModulo(req.modulo());
         f.setData(req.data());
         f.setNote(req.note());
+        if (req.partitaId() != null && !partitaRepository.existsById(req.partitaId())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Partita non trovata: " + req.partitaId());
+        }
+        f.setPartitaId(req.partitaId());
 
         // Svuota e forza subito il delete prima degli insert
         f.getPosizioni().clear();
@@ -109,6 +117,7 @@ public class FormazioneService {
                 .modulo(f.getModulo())
                 .data(f.getData())
                 .note(f.getNote())
+                .partitaId(f.getPartitaId())
                 .posizioni(posizioni)
                 .build();
     }

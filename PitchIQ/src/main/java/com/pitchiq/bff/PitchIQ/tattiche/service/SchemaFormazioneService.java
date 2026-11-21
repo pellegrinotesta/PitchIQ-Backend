@@ -9,6 +9,7 @@ import com.pitchiq.bff.PitchIQ.tattiche.dto.*;
 import com.pitchiq.bff.PitchIQ.tattiche.model.*;
 import com.pitchiq.bff.PitchIQ.tattiche.repository.FormazioneRepository;
 import com.pitchiq.bff.PitchIQ.tattiche.repository.SchemaFormazioneRepository;
+import com.pitchiq.bff.PitchIQ.partite.repository.PartitaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class SchemaFormazioneService {
     private final SchemaFormazioneRepository schemaRepository;
     private final FormazioneRepository formazioneRepository;
     private final GiocatoreRepository giocatoreRepository;
+    private final PartitaRepository partitaRepository;
 
     public List<SchemaFormazioneDto> findAll() {
         return schemaRepository.findAllOrdered().stream()
@@ -220,6 +222,6 @@ public class SchemaFormazioneService {
 
     // Referenza circolare evitata con metodo lazy
     private FormazioneService buildFormazioneService() {
-        return new FormazioneService(formazioneRepository, giocatoreRepository);
+        return new FormazioneService(formazioneRepository, giocatoreRepository, partitaRepository);
     }
 }
