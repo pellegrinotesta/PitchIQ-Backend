@@ -34,6 +34,16 @@ public class TrackingController {
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(videoService.carica(video));
     }
 
+    public record VideoUrlRequest(@jakarta.validation.constraints.NotBlank
+                                  @jakarta.validation.constraints.Size(max = 2048) String url) {}
+
+    @Operation(summary = "Scarica un video da un link pubblico (file diretto o Wikimedia Commons) e lo analizza")
+    @PostMapping(path = "/video-analyses/da-url", consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<VideoAnalysisDto> caricaVideoDaUrl(
+            @jakarta.validation.Valid @RequestBody VideoUrlRequest request) {
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(videoService.caricaDaUrl(request.url()));
+    }
+
     @Operation(summary = "Stato e clip candidate di un'analisi video")
     @GetMapping("/video-analyses/{id}")
     public VideoAnalysisDto statoVideo(@PathVariable UUID id) {

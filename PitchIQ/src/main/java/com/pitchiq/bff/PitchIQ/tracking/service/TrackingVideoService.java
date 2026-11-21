@@ -32,6 +32,7 @@ public class TrackingVideoService {
 
     private final AnalyticsClient analyticsClient;
     private final TrackingProperties props;
+    private final VideoUrlDownloader downloader;
 
     public VideoAnalysisDto carica(MultipartFile video) {
         valida(video);
@@ -45,10 +46,32 @@ public class TrackingVideoService {
             throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
                     "Non è stato possibile salvare il video sul server.", e);
         }
+        return avvia(jobId, jobDir, video.getOriginalFilename());
+    }
 
+    public VideoAnalysisDto caricaDaUrl(String url) {
+        UUID jobId = UUID.randomUUID();
+        Path jobDir = cartella(jobId);
+        VideoUrlDownloader.Risultato scaricato;
+        try {
+            Files.createDirectories(jobDir);
+            scaricato = downloader.scarica(url, jobDir.resolve("source"));
+        } catch (IOException e) {
+            cancella(jobDir);
+            throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR,
+                    "Non è stato possibile salvare il video sul server.", e);
+        } catch (RuntimeException e) {
+            cancella(jobDir);
+            throw e;
+        }
+        log.info("Video {} scaricato da link ({} byte)", jobId, scaricato.byteScaricati());
+        return avvia(jobId, jobDir, scaricato.nomeFile());
+    }
+
+    private VideoAnalysisDto avvia(UUID jobId, Path jobDir, String nomeFile) {
         try {
             analyticsClient.avviaAnalisiVideo(jobId);
-            return new VideoAnalysisDto(jobId, "IN_CODA", null, null, List.of());
+            return new VideoAnalysisDto(jobId, "IN_CODA", null, null, List.of(), null, nomeFile);
         } catch (RestClientException e) {
             cancella(jobDir);
             log.error("Avvio analisi video {} fallito", jobId, e);

@@ -70,7 +70,7 @@ def run_video_job(job_id: UUID, job_dir: Path) -> None:
     try:
         result = analyze_video(job_dir / "source", job_dir / "clips")
         state.update(stato="COMPLETATO", durataSecondi=result["durataSecondi"],
-                     eventi=result["eventi"],
+                     eventi=result["eventi"], movimento=result["movimento"],
                      messaggio=f"{len(result['eventi'])} clip candidate da verificare.")
         save_video_state(job_dir, state)
     except VideoInputError as exc:
