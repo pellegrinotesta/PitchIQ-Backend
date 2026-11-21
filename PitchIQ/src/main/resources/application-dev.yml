@@ -10,8 +10,8 @@ spring:
         format_sql: true
 
   flyway:
-    # In dev carichiamo anche i seed dati di esempio
-    locations: classpath:db/migration,classpath:db/test-data
+    # Solo lo schema: i dati reali stanno fuori dal repository (dati-locali/), quelli inventati nel profilo "demo"
+    locations: classpath:db/migration
 
 server:
   error:

@@ -44,3 +44,6 @@ __pycache__/
 !.env.example
 /tracking-data/
 backups/
+
+# Dati reali (persone vere): solo in locale, mai nel repository
+dati-locali/

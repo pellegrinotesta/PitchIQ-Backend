@@ -41,8 +41,8 @@ class TitolariTest {
     void restituisceSoloDatiPubbliciDeiTitolari() throws Exception {
         TitolareProjection giocatore = mock(TitolareProjection.class);
         when(giocatore.getId()).thenReturn(7L);
-        when(giocatore.getNome()).thenReturn("Raffaele");
-        when(giocatore.getCognome()).thenReturn("Russo");
+        when(giocatore.getNome()).thenReturn("Lorenzo");
+        when(giocatore.getCognome()).thenReturn("Bettinelli");
         when(giocatore.getPosizione()).thenReturn("CF-L");
         when(giocatore.getNumeroMaglia()).thenReturn(10);
         when(giocatore.getModuloFonte()).thenReturn("3-5-2");
@@ -51,7 +51,7 @@ class TitolariTest {
 
         mvc.perform(get("/api/partite/1/titolari"))
                 .andExpect(status().isOk())
-                .andExpect(content().json("[{\"id\":7,\"nome\":\"Raffaele\",\"cognome\":\"Russo\",\"posizione\":\"CF-L\",\"numeroMaglia\":10,\"moduloFonte\":\"3-5-2\"}]", true));
+                .andExpect(content().json("[{\"id\":7,\"nome\":\"Lorenzo\",\"cognome\":\"Bettinelli\",\"posizione\":\"CF-L\",\"numeroMaglia\":10,\"moduloFonte\":\"3-5-2\"}]", true));
     }
 
     @Test

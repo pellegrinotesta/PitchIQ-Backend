@@ -99,10 +99,10 @@ class SchemaFormazioneServiceTest {
     @Test
     void gliSlotPerCategoriaVengonoRiempitiConIRuoliSpecifici() {
         // prima del fix: slot "DIFENSORE" contro ruolo "DC" -> nessun abbinamento e formazione svuotata
-        var izzo = giocatore(53, "Izzo", RuoloGiocatore.DC);
-        var palmiero = giocatore(63, "Palmiero", RuoloGiocatore.CDC);
-        var biasci = giocatore(72, "Biasci", RuoloGiocatore.SP);
-        rosa(izzo, palmiero, biasci);
+        var valsecchi = giocatore(53, "Valsecchi", RuoloGiocatore.DC);
+        var tedeschini = giocatore(63, "Tedeschini", RuoloGiocatore.CDC);
+        var antonelli = giocatore(72, "Antonelli", RuoloGiocatore.SP);
+        rosa(valsecchi, tedeschini, antonelli);
         slot("CB2", "DIFENSORE", 50, 76);
         slot("CM2", "CENTROCAMPISTA", 50, 44);
         slot("ST1", "ATTACCANTE", 35, 18);
@@ -117,9 +117,9 @@ class SchemaFormazioneServiceTest {
 
     @Test
     void lUnSlotPuoChiedereUnRuoloSpecifico() {
-        var sala = giocatore(59, "Sala", RuoloGiocatore.TSS);
-        var izzo = giocatore(53, "Izzo", RuoloGiocatore.DC);
-        rosa(izzo, sala);
+        var brambati = giocatore(59, "Brambati", RuoloGiocatore.TSS);
+        var valsecchi = giocatore(53, "Valsecchi", RuoloGiocatore.DC);
+        rosa(valsecchi, brambati);
         slot("LWB", "TSS", 10, 52);
 
         service.applicaAFormazione(9L, 1L);
@@ -129,10 +129,10 @@ class SchemaFormazioneServiceTest {
 
     @Test
     void iTitolariAttualiHannoLaPrecedenzaSulRestoDellaRosa() {
-        var simic = giocatore(55, "Simic", RuoloGiocatore.DC);
-        var izzo = giocatore(53, "Izzo", RuoloGiocatore.DC);
-        rosa(izzo, simic);
-        inCampo(simic, true);
+        var kremer = giocatore(55, "Kremer", RuoloGiocatore.DC);
+        var valsecchi = giocatore(53, "Valsecchi", RuoloGiocatore.DC);
+        rosa(valsecchi, kremer);
+        inCampo(kremer, true);
         slot("CB1", "DIFENSORE", 30, 74);
 
         service.applicaAFormazione(9L, 1L);
@@ -142,9 +142,9 @@ class SchemaFormazioneServiceTest {
 
     @Test
     void nessunTitolareSparisceSeMancaIlRuoloGiusto() {
-        var russo = giocatore(70, "Russo", RuoloGiocatore.ALS);
-        rosa(russo);
-        inCampo(russo, true);
+        var bettinelli = giocatore(70, "Bettinelli", RuoloGiocatore.ALS);
+        rosa(bettinelli);
+        inCampo(bettinelli, true);
         slot("ST1", "ATTACCANTE", 35, 18); // nessun attaccante disponibile
 
         service.applicaAFormazione(9L, 1L);
@@ -154,10 +154,10 @@ class SchemaFormazioneServiceTest {
 
     @Test
     void laPanchinaRestaInFormazione() {
-        var izzo = giocatore(53, "Izzo", RuoloGiocatore.DC);
-        var favilli = giocatore(76, "Favilli", RuoloGiocatore.PC);
-        rosa(izzo, favilli);
-        inCampo(favilli, false);
+        var valsecchi = giocatore(53, "Valsecchi", RuoloGiocatore.DC);
+        var gervasoni = giocatore(76, "Gervasoni", RuoloGiocatore.PC);
+        rosa(valsecchi, gervasoni);
+        inCampo(gervasoni, false);
         slot("CB1", "DIFENSORE", 30, 74);
 
         service.applicaAFormazione(9L, 1L);
@@ -171,9 +171,9 @@ class SchemaFormazioneServiceTest {
 
     @Test
     void seNonCeNessunoLaFormazioneNonVieneToccata() {
-        var izzo = giocatore(53, "Izzo", RuoloGiocatore.DC);
-        rosa(izzo);
-        inCampo(izzo, false);
+        var valsecchi = giocatore(53, "Valsecchi", RuoloGiocatore.DC);
+        rosa(valsecchi);
+        inCampo(valsecchi, false);
         slot("GK", "PORTIERE", 50, 88);
 
         assertThatThrownBy(() -> service.applicaAFormazione(9L, 1L))
@@ -185,9 +185,9 @@ class SchemaFormazioneServiceTest {
 
     @Test
     void applicandoLoSchemaLeSueFasiPassanoAiGiocatori() {
-        var izzo = giocatore(53, "Izzo", RuoloGiocatore.DC);
-        var biasci = giocatore(72, "Biasci", RuoloGiocatore.SP);
-        rosa(izzo, biasci);
+        var valsecchi = giocatore(53, "Valsecchi", RuoloGiocatore.DC);
+        var antonelli = giocatore(72, "Antonelli", RuoloGiocatore.SP);
+        rosa(valsecchi, antonelli);
         slot("CB1", "DIFENSORE", 50, 76);
         slot("ST", "ATTACCANTE", 50, 14);
         schema.setFasi(Map.of(FaseGioco.NON_POSSESSO, new FaseSchema(

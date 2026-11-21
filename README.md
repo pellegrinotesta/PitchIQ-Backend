@@ -33,13 +33,11 @@ Flyway applica automaticamente le migrazioni all'avvio. Il datasource locale usa
 
 ## Avvio con Docker Compose
 
-Il file Compose si trova nella radice del repository, non in questa cartella. Compose avvia MySQL 8.4 in un container e crea il database `pitch_iq` su un nuovo volume persistente. Crea un file `.env` nella radice del repository con:
+Il file Compose si trova nella radice del repository, non in questa cartella. Compose avvia MySQL 8.4 in un container e crea il database `pitch_iq` su un nuovo volume persistente. Crea il file `.env` partendo dall'esempio e compila i valori (il `.env` non va mai messo in git):
 
-```dotenv
-DB_USERNAME=pitchiq
-DB_PASSWORD=imposta_una_password_mysql_sicura
-JWT_SECRET=imposta_una_chiave_sicura_di_almeno_32_caratteri
-CORS_ORIGINS=http://localhost:4200
+```bash
+cp .env.example .env
+openssl rand -base64 48   # da usare come JWT_SECRET, diverso per ogni ambiente
 ```
 
 Dalla radice del repository avvia tutti i moduli, incluso tracking:
@@ -61,6 +59,20 @@ Non pubblicare il file `.env` e mantieni stabile la chiave tra i riavvii.
 La shell sarà disponibile su `http://localhost:4200`; il microfrontend tracking su
 `http://localhost:4206`; BFF su `http://localhost:8080` e analytics su
 `http://localhost:8000/health`. Non usare `docker compose down -v` se vuoi conservare il database.
+
+## Dati: demo e dati reali
+
+- **Demo** (dati inventati: squadra, giocatori e avversari fittizi): avvia il BFF con il profilo `demo`.
+  Usa un database separato, `pitch_iq_demo`, creato al primo avvio e riempito da
+  `db/demo-data/R__demo_dati.sql`; le date sono relative al giorno di caricamento.
+  Per ripristinare la demo basta modificare quel file (Flyway lo riesegue quando cambia).
+
+  ```bash
+  SPRING_PROFILES_ACTIVE=demo java -jar PitchIQ/target/PitchIQ-0.0.1-SNAPSHOT.jar
+  ```
+
+- **Dati reali** (persone vere): non vanno nel repository. Tienili in `dati-locali/`, cartella esclusa da git.
+  Il profilo `dev` carica solo lo schema del database.
 
 ## Avvio locale
 
