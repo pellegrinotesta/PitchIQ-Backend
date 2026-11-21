@@ -27,6 +27,7 @@ public class TrackingController {
     private final TrackingImportService importService;
     private final TrackingQueryService queryService;
     private final TrackingVideoService videoService;
+    private final com.pitchiq.bff.PitchIQ.tracking.service.EtichetteClipService etichetteService;
 
     @Operation(summary = "Carica un video per l'estrazione sperimentale di clip candidate")
     @PostMapping(path = "/video-analyses", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -47,7 +48,28 @@ public class TrackingController {
     @Operation(summary = "Stato e clip candidate di un'analisi video")
     @GetMapping("/video-analyses/{id}")
     public VideoAnalysisDto statoVideo(@PathVariable UUID id) {
-        return videoService.stato(id);
+        return etichetteService.conEtichette(videoService.stato(id));
+    }
+
+    public record EtichettaRequest(@jakarta.validation.constraints.NotBlank String etichetta) {}
+
+    @Operation(summary = "Etichetta una clip (esempio per il classificatore eventi) e riaddestra il modello")
+    @PutMapping("/video-analyses/{id}/clips/{clipId}/etichetta")
+    public ModelloEventiDto etichettaClip(@PathVariable UUID id, @PathVariable String clipId,
+                                          @jakarta.validation.Valid @RequestBody EtichettaRequest request) {
+        return etichetteService.etichetta(id, clipId, request.etichetta());
+    }
+
+    @Operation(summary = "Rimuove l'etichetta di una clip e riaddestra il modello")
+    @DeleteMapping("/video-analyses/{id}/clips/{clipId}/etichetta")
+    public ModelloEventiDto rimuoviEtichettaClip(@PathVariable UUID id, @PathVariable String clipId) {
+        return etichetteService.rimuovi(id, clipId);
+    }
+
+    @Operation(summary = "Stato del classificatore eventi (esempi per tipo, accuratezza stimata)")
+    @GetMapping("/modello-eventi")
+    public ModelloEventiDto modelloEventi() {
+        return etichetteService.stato();
     }
 
     @GetMapping("/video-analyses/{id}/clips/{clipId}")
