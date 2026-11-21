@@ -33,4 +33,9 @@ public class SchemaFormazione {
 
     @OneToMany(mappedBy = "schema", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<FrecciaSchema> frecce = new LinkedHashSet<>();
+
+    /** Fasi di gioco per nome dello slot; null o vuoto se lo schema descrive solo lo schieramento. */
+    @org.hibernate.annotations.JdbcTypeCode(org.hibernate.type.SqlTypes.JSON)
+    @Column(columnDefinition = "json")
+    private java.util.Map<FaseGioco, FaseSchema> fasi;
 }

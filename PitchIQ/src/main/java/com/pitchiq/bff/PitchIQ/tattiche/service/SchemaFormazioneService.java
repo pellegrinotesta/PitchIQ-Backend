@@ -127,6 +127,19 @@ public class SchemaFormazioneService {
         });
         formazione.getPosizioni().addAll(panchina);
         formazione.setModulo(schema.getModulo());
+        // le fasi dello schema diventano quelle della formazione: ogni slot prende il giocatore assegnato
+        if (schema.getFasi() != null && !schema.getFasi().isEmpty()) {
+            Map<String, Long> giocatorePerSlot = new HashMap<>();
+            assegnati.forEach((slot, g) -> giocatorePerSlot.put(slot.getSlotRuolo(), g.getId()));
+            Map<FaseGioco, FaseFormazione> fasi = new EnumMap<>(FaseGioco.class);
+            schema.getFasi().forEach((fase, contenuto) -> fasi.put(fase, new FaseFormazione(
+                    contenuto.posizioni() == null ? List.of() : contenuto.posizioni().stream()
+                            .filter(p -> giocatorePerSlot.containsKey(p.slot()))
+                            .map(p -> new FaseFormazione.PosizioneFase(giocatorePerSlot.get(p.slot()), p.coordX(), p.coordY()))
+                            .toList(),
+                    contenuto.frecce() == null ? List.of() : contenuto.frecce())));
+            formazione.setFasi(fasi);
+        }
         formazioneRepository.save(formazione);
 
         return buildFormazioneService().findById(formazioneId);
@@ -159,7 +172,20 @@ public class SchemaFormazioneService {
                 .orElseThrow(() -> new ResourceNotFoundException("Schema non trovato: " + id));
     }
 
+    static final int MAX_SLOT = 11;
+
     private void applyRequest(SchemaFormazione s, SchemaFormazioneRequest req) {
+        List<SlotSchemaRequest> slotRichiesti = req.slot() == null ? List.of() : req.slot();
+        if (slotRichiesti.size() > MAX_SLOT) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Uno schema ha al massimo 11 slot.");
+        }
+        Set<String> nomi = new HashSet<>();
+        for (SlotSchemaRequest sr : slotRichiesti) {
+            // le fasi si riferiscono agli slot per nome: deve essere unico
+            if (!nomi.add(sr.slotRuolo().trim().toUpperCase(Locale.ROOT))) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Nome di slot ripetuto: " + sr.slotRuolo());
+            }
+        }
         s.setNome(req.nome());
         s.setModulo(req.modulo());
         s.setDescrizione(req.descrizione());
@@ -169,7 +195,7 @@ public class SchemaFormazioneService {
             req.slot().forEach(sr -> {
                 SlotSchema slot = new SlotSchema();
                 slot.setSchema(s);
-                slot.setSlotRuolo(sr.slotRuolo());
+                slot.setSlotRuolo(sr.slotRuolo().trim());
                 slot.setRuolo(sr.ruolo());
                 slot.setCoordX(sr.coordX());
                 slot.setCoordY(sr.coordY());
@@ -192,6 +218,21 @@ public class SchemaFormazioneService {
                 s.getFrecce().add(freccia);
             });
         }
+        s.setFasi(fasiDegliSlot(req.fasi(), s.getSlot().stream().map(SlotSchema::getSlotRuolo).collect(Collectors.toSet())));
+    }
+
+    /** Tiene nelle fasi solo gli slot esistenti; le fasi vuote non vengono salvate. */
+    static Map<FaseGioco, FaseSchema> fasiDegliSlot(Map<FaseGioco, FaseSchema> fasi, Set<String> slot) {
+        if (fasi == null || fasi.isEmpty()) return null;
+        Map<FaseGioco, FaseSchema> pulite = new EnumMap<>(FaseGioco.class);
+        fasi.forEach((fase, contenuto) -> {
+            if (fase == null || contenuto == null) return;
+            List<FaseSchema.PosizioneSlot> posizioni = contenuto.posizioni() == null ? List.of()
+                    : contenuto.posizioni().stream().filter(p -> slot.contains(p.slot())).toList();
+            List<FaseFormazione.FrecciaFase> frecce = contenuto.frecce() == null ? List.of() : contenuto.frecce();
+            if (!posizioni.isEmpty() || !frecce.isEmpty()) pulite.put(fase, new FaseSchema(posizioni, frecce));
+        });
+        return pulite.isEmpty() ? null : pulite;
     }
 
     private SchemaFormazioneDto toDto(SchemaFormazione s) {
@@ -217,6 +258,7 @@ public class SchemaFormazioneService {
                         .colore(fr.getColore())
                         .etichetta(fr.getEtichetta())
                         .build()).toList())
+                .fasi(s.getFasi() == null ? Map.of() : s.getFasi())
                 .build();
     }
 

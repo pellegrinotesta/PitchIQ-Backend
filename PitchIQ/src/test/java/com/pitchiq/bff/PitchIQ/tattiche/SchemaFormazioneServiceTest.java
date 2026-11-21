@@ -4,6 +4,11 @@ import com.pitchiq.bff.PitchIQ.squadre.model.Giocatore;
 import com.pitchiq.bff.PitchIQ.squadre.model.RuoloGiocatore;
 import com.pitchiq.bff.PitchIQ.squadre.model.StatoGiocatore;
 import com.pitchiq.bff.PitchIQ.squadre.repository.GiocatoreRepository;
+import com.pitchiq.bff.PitchIQ.tattiche.dto.SchemaFormazioneRequest;
+import com.pitchiq.bff.PitchIQ.tattiche.dto.SlotSchemaRequest;
+import com.pitchiq.bff.PitchIQ.tattiche.model.FaseFormazione;
+import com.pitchiq.bff.PitchIQ.tattiche.model.FaseGioco;
+import com.pitchiq.bff.PitchIQ.tattiche.model.FaseSchema;
 import com.pitchiq.bff.PitchIQ.tattiche.model.Formazione;
 import com.pitchiq.bff.PitchIQ.tattiche.model.PosizioneCampo;
 import com.pitchiq.bff.PitchIQ.tattiche.model.SchemaFormazione;
@@ -16,6 +21,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
+import java.util.Map;
+import java.util.stream.IntStream;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -174,5 +181,59 @@ class SchemaFormazioneServiceTest {
                 .hasMessageContaining("non è stata modificata");
         assertThat(formazione.getPosizioni()).hasSize(1);
         verify(formazioni, never()).saveAndFlush(any());
+    }
+
+    @Test
+    void applicandoLoSchemaLeSueFasiPassanoAiGiocatori() {
+        var izzo = giocatore(53, "Izzo", RuoloGiocatore.DC);
+        var biasci = giocatore(72, "Biasci", RuoloGiocatore.SP);
+        rosa(izzo, biasci);
+        slot("CB1", "DIFENSORE", 50, 76);
+        slot("ST", "ATTACCANTE", 50, 14);
+        schema.setFasi(Map.of(FaseGioco.NON_POSSESSO, new FaseSchema(
+                List.of(new FaseSchema.PosizioneSlot("ST", 50, 35), new FaseSchema.PosizioneSlot("XX", 1, 1)),
+                List.of(new FaseFormazione.FrecciaFase(50, 35, 50, 45, "PRESSIONE")))));
+
+        service.applicaAFormazione(9L, 1L);
+
+        var nonPossesso = formazione.getFasi().get(FaseGioco.NON_POSSESSO);
+        assertThat(nonPossesso.posizioni()).containsExactly(new FaseFormazione.PosizioneFase(72L, 50, 35));
+        assertThat(nonPossesso.frecce()).hasSize(1);
+    }
+
+    private SchemaFormazioneRequest richiesta(List<SlotSchemaRequest> slot, Map<FaseGioco, FaseSchema> fasi) {
+        return new SchemaFormazioneRequest("Pressing alto", "4-3-3", null, slot, List.of(), fasi);
+    }
+
+    @Test
+    void iNomiDegliSlotDevonoEssereUnici() {
+        var doppio = List.of(new SlotSchemaRequest("CB1", "DIFENSORE", 40.0, 75.0, null),
+                new SlotSchemaRequest("cb1 ", "DIFENSORE", 60.0, 75.0, null));
+
+        assertThatThrownBy(() -> service.create(richiesta(doppio, null))).hasMessageContaining("ripetuto");
+        verify(schemi, never()).save(any());
+    }
+
+    @Test
+    void alMassimoUndiciSlot() {
+        var dodici = IntStream.rangeClosed(1, 12)
+                .mapToObj(i -> new SlotSchemaRequest("S" + i, "CENTROCAMPISTA", 50.0, 50.0, null)).toList();
+
+        assertThatThrownBy(() -> service.create(richiesta(dodici, null))).hasMessageContaining("11 slot");
+    }
+
+    @Test
+    void leFasiTengonoSoloGliSlotEsistenti() {
+        when(schemi.save(any())).thenAnswer(i -> i.getArgument(0));
+        var slot = List.of(new SlotSchemaRequest("CB1", "DIFENSORE", 40.0, 75.0, null));
+        var fasi = Map.of(
+                FaseGioco.POSSESSO, new FaseSchema(List.of(new FaseSchema.PosizioneSlot("CB1", 40, 60),
+                        new FaseSchema.PosizioneSlot("ST", 50, 10)), List.of()),
+                FaseGioco.NON_POSSESSO, new FaseSchema(List.of(new FaseSchema.PosizioneSlot("ST", 50, 30)), List.of()));
+
+        var dto = service.create(richiesta(slot, fasi));
+
+        assertThat(dto.fasi()).containsOnlyKeys(FaseGioco.POSSESSO);
+        assertThat(dto.fasi().get(FaseGioco.POSSESSO).posizioni()).extracting(FaseSchema.PosizioneSlot::slot).containsExactly("CB1");
     }
 }

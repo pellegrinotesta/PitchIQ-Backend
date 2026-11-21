@@ -11,6 +11,8 @@ public record SchemaFormazioneDto(
         String modulo,
         String descrizione,
         List<SlotSchemaDto> slot,
-        List<FrecciaSchemaDto> frecce
+        List<FrecciaSchemaDto> frecce,
+        java.util.Map<com.pitchiq.bff.PitchIQ.tattiche.model.FaseGioco,
+                com.pitchiq.bff.PitchIQ.tattiche.model.FaseSchema> fasi
 ) {
 }
