@@ -36,11 +36,35 @@ class FieldState:
     ball: Detection | None
 
 
+NEAR_BALL_HEIGHTS = 2.5
+"""Un giocatore è "vicino al pallone" entro questa distanza, in altezze del corpo."""
+
+
 @dataclass(frozen=True)
 class Activity:
     score: float
     matched: int
     ball_speed: float | None
+    top_speed: float = 0.0
+    """Velocità del giocatore più rapido, in altezze/s."""
+    near_ball: int = 0
+    """Giocatori vicini al pallone nel campione corrente (0 se il pallone non è visto)."""
+    spread: float = 0.0
+    """Dispersione dei giocatori in campo, in altezze: alta = squadre allungate, bassa = raccolte."""
+
+
+def describe(state: FieldState) -> tuple[int, float]:
+    """Giocatori vicini al pallone e dispersione dei giocatori nel campione."""
+    if not state.players:
+        return 0, 0.0
+    feet = np.array([p.foot for p in state.players], dtype=np.float64)
+    reference = max(float(np.median([p.height for p in state.players])), 1.0)
+    spread = float(np.sqrt(feet.var(axis=0).sum())) / reference if len(feet) > 1 else 0.0
+    near = 0
+    if state.ball is not None:
+        distances = np.linalg.norm(feet - np.array(state.ball.center), axis=1) / reference
+        near = int((distances <= NEAR_BALL_HEIGHTS).sum())
+    return near, spread
 
 
 def field_state(second: float, detections: list[Detection], pitch: np.ndarray, frame_height: int) -> FieldState:
@@ -65,8 +89,9 @@ def field_state(second: float, detections: list[Detection], pitch: np.ndarray, f
 def activity(previous: FieldState, current: FieldState, camera: np.ndarray | None) -> Activity:
     """camera: affine 2x3 da previous a current in coordinate del fotogramma originale (None = camera ferma)."""
     dt = current.second - previous.second
+    near_ball, spread = describe(current)
     if dt <= 0 or not previous.players or not current.players:
-        return Activity(0.0, 0, None)
+        return Activity(0.0, 0, None, near_ball=near_ball, spread=spread)
 
     before = _warp([p.foot for p in previous.players], camera)
     after = np.array([p.foot for p in current.players], dtype=np.float64)
@@ -101,7 +126,7 @@ def activity(previous: FieldState, current: FieldState, camera: np.ndarray | Non
         moved = np.linalg.norm(_warp([previous.ball.center], camera)[0] - np.array(current.ball.center))
         ball_speed = min(MAX_BALL_SPEED, moved / max(reference, 1.0) / dt)
         score += BALL_WEIGHT * ball_speed
-    return Activity(score, len(speeds), ball_speed)
+    return Activity(score, len(speeds), ball_speed, max(speeds, default=0.0), near_ball, spread)
 
 
 def scale_transform(matrix: np.ndarray | None, small_size: tuple[int, int],

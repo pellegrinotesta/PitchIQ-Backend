@@ -14,6 +14,7 @@ import cv2
 import numpy as np
 
 from .camera_motion import frame_difference, pitch_mask
+from .clip_features import SampleDetail, clip_features, clues
 from .detection import Detector
 from .player_activity import FieldState, activity, field_state, scale_transform
 from .video_segments import MotionSample, candidate_intervals, motion_threshold
@@ -48,6 +49,7 @@ class MotionAnalysis:
     method: str
     players: list[int] = field(default_factory=list)
     ball: list[bool] = field(default_factory=list)
+    details: list[SampleDetail] = field(default_factory=list)
 
 
 class _PlayerTracker:
@@ -95,6 +97,8 @@ def _motion_samples(video_path: Path) -> MotionAnalysis:
     fractions: list[float] = []
     players_count: list[int] = []
     ball_seen: list[bool] = []
+    player_details: list[SampleDetail] = []
+    pixel_details: list[SampleDetail] = []
     previous = None
     previous_pitch = None
     previous_state: FieldState | None = None
@@ -132,11 +136,18 @@ def _motion_samples(video_path: Path) -> MotionAnalysis:
                 on_pitch.append(MotionSample(second, pitch_score))
                 fractions.append(diff.pitch_fraction)
 
+                camera_move = diff.camera_shift / SMALL_SIZE[0]
+                pixel_details.append(SampleDetail(second, on_pitch[-1].score, camera=camera_move))
                 score = 0.0
+                detail = SampleDetail(second, 0.0, players=len(state.players) if state else 0, camera=camera_move)
                 if state is not None and previous_state is not None:
                     camera = scale_transform(diff.transform, SMALL_SIZE, (width, height))
-                    score = activity(previous_state, state, camera).score
+                    result = activity(previous_state, state, camera)
+                    score = result.score
+                    detail = SampleDetail(second, score, result.top_speed, result.ball_speed, result.near_ball,
+                                          result.spread, len(state.players), camera_move)
                 by_players.append(MotionSample(second, score))
+                player_details.append(detail)
                 players_count.append(len(state.players) if state else 0)
                 ball_seen.append(bool(state and state.ball))
             previous = gray
@@ -146,10 +157,13 @@ def _motion_samples(video_path: Path) -> MotionAnalysis:
         capture.release()
 
     if detector is not None and players_count and median(players_count) >= MIN_PLAYERS_VIDEO:
-        return MotionAnalysis(by_players, last_second, frames, METHOD_PLAYERS, players_count, ball_seen)
+        return MotionAnalysis(by_players, last_second, frames, METHOD_PLAYERS, players_count, ball_seen,
+                              player_details)
     # il movimento di pubblico, bandiere e fumo non è gioco: se il campo è inquadrato si guarda solo lì
     use_pitch = bool(fractions) and median(fractions) >= MIN_PITCH_VIDEO
-    return MotionAnalysis(on_pitch if use_pitch else full, last_second, frames, METHOD_PIXELS)
+    samples = on_pitch if use_pitch else full
+    details = [SampleDetail(s.second, s.score, camera=d.camera) for s, d in zip(samples, pixel_details)]
+    return MotionAnalysis(samples, last_second, frames, METHOD_PIXELS, details=details)
 
 
 def _write_clip(video_path: Path, target: Path, start: float, end: float,
@@ -212,12 +226,15 @@ def analyze_video(video_path: Path, clips_dir: Path) -> dict:
     for index, (start, end, intensity) in enumerate(intervals, start=1):
         clip_id = f"clip-{index:03d}"
         _write_clip(video_path, clips_dir / f"{clip_id}.mp4", start, end, fps, width, height)
+        features = clip_features(analysis.details, start, end, analysis.method == METHOD_PLAYERS)
         events.append({
             "id": clip_id,
             "etichetta": _label(analysis, start, end),
             "inizioSecondi": round(start, 2),
             "fineSecondi": round(end, 2),
             "intensitaMovimento": round(intensity / peak, 3) if peak else 0.0,
+            "caratteristiche": features,
+            "indizi": clues(features),
         })
 
     threshold = motion_threshold(samples)
