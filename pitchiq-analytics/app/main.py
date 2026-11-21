@@ -3,7 +3,9 @@ Servizio interno di elaborazione. Non è esposto al frontend: lo chiama solo il 
 
 POST /jobs  {"importId": 12, "cartella": "12"}  -> 202, elaborazione in background
 POST /video-jobs  {"jobId": "<uuid>"}            -> 202, estrazione clip candidate
-GET  /video-jobs/{id}                            -> stato e segmenti rilevati
+GET  /video-jobs/{id}                            -> stato e segmenti rilevati (con proposte del modello eventi)
+POST /event-model  {"esempi": [...]}             -> riaddestra il classificatore eventi dalle etichette
+GET  /event-model                                -> stato del classificatore eventi
 GET  /health
 """
 from __future__ import annotations
@@ -12,7 +14,9 @@ import json
 import logging
 import os
 import shutil
+import threading
 import time
+from typing import Literal
 from uuid import UUID
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
@@ -22,6 +26,7 @@ from pydantic import BaseModel, Field
 
 from . import db
 from .pipeline import InvalidInput, process
+from .event_model import LABELS, EventModel
 from .video_pipeline import VideoInputError, analyze_video
 
 log = logging.getLogger("pitchiq.analytics")
@@ -50,6 +55,28 @@ class JobRequest(BaseModel):
 
 class VideoJobRequest(BaseModel):
     jobId: UUID
+
+
+class EventExample(BaseModel):
+    etichetta: Literal[LABELS]  # type: ignore[valid-type]
+    caratteristiche: dict[str, float]
+
+
+class EventTrainingRequest(BaseModel):
+    esempi: list[EventExample] = Field(max_length=10_000)
+
+
+EVENT_MODEL_PATH = UPLOAD_ROOT / "event-model.json"
+_event_model_lock = threading.Lock()
+_event_model: EventModel | None = None
+
+
+def event_model() -> EventModel:
+    global _event_model
+    with _event_model_lock:
+        if _event_model is None:
+            _event_model = EventModel.load(EVENT_MODEL_PATH)
+        return _event_model
 
 
 def video_job_dir(job_id: UUID) -> Path:
@@ -142,7 +169,35 @@ def video_status(job_id: UUID):
     state_file = video_job_dir(job_id) / "state.json"
     if not state_file.is_file():
         raise HTTPException(404, "Analisi video non trovata.")
-    return json.loads(state_file.read_text(encoding="utf-8"))
+    state = json.loads(state_file.read_text(encoding="utf-8"))
+    # proposte calcolate a ogni lettura: riflettono sempre il modello più recente, anche per analisi vecchie
+    model = event_model()
+    for event in state.get("eventi", []):
+        features = event.get("caratteristiche")
+        proposal = model.propose(features) if isinstance(features, dict) else None
+        event["proposta"] = (
+            {"etichetta": proposal.label, "confidenza": round(proposal.confidence, 3)} if proposal else None
+        )
+    return state
+
+
+@app.post("/event-model")
+def train_event_model(req: EventTrainingRequest):
+    global _event_model
+    examples = [e.model_dump() for e in req.esempi]
+    model = EventModel.train(examples)
+    UPLOAD_ROOT.mkdir(parents=True, exist_ok=True)
+    with _event_model_lock:
+        model.save(EVENT_MODEL_PATH, examples)
+        _event_model = model
+    summary = model.summary()
+    log.info("modello eventi riaddestrato: %s esempi, attivo=%s", summary["esempi"], summary["attivo"])
+    return summary
+
+
+@app.get("/event-model")
+def event_model_status():
+    return event_model().summary()
 
 
 @app.get("/health")
